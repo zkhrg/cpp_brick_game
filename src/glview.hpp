@@ -3,6 +3,7 @@
 
 #define GL_SILENCE_DEPRECATION
 
+#include <QColor>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QMouseEvent>
@@ -19,7 +20,7 @@ class glView : public QOpenGLWidget {
 
   void initializeGL() override;
   void paintGL() override;
-  void drawRectangle(int x1, int y1);
+  void drawRectangle(int x1, int y1, QColor color);
   // void updateScene(GameInfo* gi);
   void DrawMenu();
   void KeyReleasedMenu(int aKey);

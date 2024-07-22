@@ -50,9 +50,9 @@ void glView::paintGL() {
 }
 
 // нужно будет как-то еще передавать сюда цвет
-void glView::drawRectangle(int x1, int y1) {
+void glView::drawRectangle(int x1, int y1, QColor color) {
   glBegin(GL_QUADS);
-  glColor3f(1.0, 0.0, 0.0);
+  glColor3f(color.redF(), color.greenF(), color.blueF());
 
   glVertex2i(x1, y1);
   glVertex2i(x1 + tile_size, y1);
@@ -237,7 +237,7 @@ void glView::DrawSnakeGame() {
           break;
         }
         case 2: {
-          drawRectangle(j * tile_size, i * tile_size);
+          drawRectangle(j * tile_size, i * tile_size, Qt::magenta);
           break;
         }
         // TODO: rework
