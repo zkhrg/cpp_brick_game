@@ -18,6 +18,42 @@ glView::eMenu operator--(glView::eMenu &aMenu) {
   return aMenu;
 }
 
+glView::ePauseMenu operator++(glView::ePauseMenu &aPauseMenu) {
+  if (aPauseMenu == glView::ePauseMenu::GO_TO_MAIN_MENU) {
+    aPauseMenu = glView::ePauseMenu::RESUME;
+    return aPauseMenu;
+  }
+  aPauseMenu = glView::ePauseMenu(int(aPauseMenu) + 1);
+  return aPauseMenu;
+}
+
+glView::ePauseMenu operator--(glView::ePauseMenu &aPauseMenu) {
+  if (aPauseMenu == glView::ePauseMenu::RESUME) {
+    aPauseMenu = glView::ePauseMenu::GO_TO_MAIN_MENU;
+    return aPauseMenu;
+  }
+  aPauseMenu = glView::ePauseMenu(int(aPauseMenu) - 1);
+  return aPauseMenu;
+}
+
+glView::eGameOverMenu operator++(glView::eGameOverMenu &aGameOverMenu) {
+  if (aGameOverMenu == glView::eGameOverMenu::GO_TO_MAIN_MENU) {
+    aGameOverMenu = glView::eGameOverMenu::PLAY_AGAIN;
+    return aGameOverMenu;
+  }
+  aGameOverMenu = glView::eGameOverMenu(int(aGameOverMenu) + 1);
+  return aGameOverMenu;
+}
+
+glView::eGameOverMenu operator--(glView::eGameOverMenu &aGameOverMenu) {
+  if (aGameOverMenu == glView::eGameOverMenu::PLAY_AGAIN) {
+    aGameOverMenu = glView::eGameOverMenu::GO_TO_MAIN_MENU;
+    return aGameOverMenu;
+  }
+  aGameOverMenu = glView::eGameOverMenu(int(aGameOverMenu) - 1);
+  return aGameOverMenu;
+}
+
 glView::glView() : timer(new QTimer(this)) {
   connect(timer, &QTimer::timeout, this, &glView::paintGL);
   timer->start(1000 / 60);
@@ -34,6 +70,9 @@ glView::glView() : timer(new QTimer(this)) {
   mvMenu.push_back({eMenu::TETRIS, "Tetris"});
   mvMenu.push_back({eMenu::SNAKE, "Snake"});
   mvMenu.push_back({eMenu::EXIT, "Exit"});
+
+  mvPauseMenu.push_back({ePauseMenu::RESUME, "Resume"});
+  mvPauseMenu.push_back({ePauseMenu::GO_TO_MAIN_MENU, "Return to menu"});
 }
 
 void glView::initializeGL() {
@@ -120,6 +159,12 @@ void glView::DrawUsingState() {
     case eState::TETRIS:
       DrawTetrisGame();
       break;
+    case eState::PAUSE:
+      DrawPauseMenu();
+      break;
+    case eState::GAMEOVER:
+      DrawGameOverMenu();
+      break;
     case eState::EXIT:
       break;
   }
@@ -170,6 +215,8 @@ void glView::KeyReleasedMenu(int aKey) {
     case Qt::Key_Enter:
     case Qt::Key_Return: {
       mState = (eState)mCurrentMenu;
+      if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
+      if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
       break;
     }
   }
@@ -197,9 +244,54 @@ void glView::KeyPressedSnake(int aKey) {
       // TODO:
     case Qt::Key_Escape: {
       controller.HandleKey(aKey);
+      prevState = mState;
+      mState = eState::PAUSE;
       break;
     }
   }
+}
+
+void glView::keyPressedPauseMenu(int aKey) {
+  switch (aKey) {
+    case Qt::Key_Up: {
+      --mCurrentPauseMenu;
+      break;
+    }
+    case Qt::Key_Down: {
+      ++mCurrentPauseMenu;
+      break;
+    }
+    case Qt::Key_Enter:
+    case Qt::Key_Return: {
+      if (mCurrentPauseMenu == ePauseMenu::RESUME) {
+        mState = prevState;
+        controller.HandleKey(Qt::Key_Escape);
+      } else {
+        mState = eState::MENU;
+      }
+      break;
+    }
+  }
+  update();
+}
+
+void glView::keyPressedGameOverMenu(int aKey) {
+  switch (aKey) {
+    case Qt::Key_Up: {
+      --mCurrentMenu;
+      break;
+    }
+    case Qt::Key_Down: {
+      ++mCurrentMenu;
+      break;
+    }
+    case Qt::Key_Enter:
+    case Qt::Key_Return: {
+      mState = (eState)mCurrentMenu;
+      break;
+    }
+  }
+  update();
 }
 
 void glView::keyPressEvent(QKeyEvent *apKeyEvent) {
@@ -210,6 +302,12 @@ void glView::keyPressEvent(QKeyEvent *apKeyEvent) {
       break;
     case eState::SNAKE:
       KeyPressedSnake(apKeyEvent->key());
+      break;
+    case eState::PAUSE:
+      keyPressedPauseMenu(apKeyEvent->key());
+      break;
+    case eState::GAMEOVER:
+      keyPressedGameOverMenu(apKeyEvent->key());
       break;
     case eState::EXIT:
       break;
@@ -225,7 +323,6 @@ void glView::Processing() {
     case (int)eState::SNAKE: {
       // можно создавать экземпляр а потом его грохать
       // TODO: rework
-      if (controller.current_game == nullptr) controller.SetGame(eGame::SNAKE);
       break;
     }
     case (int)eState::EXIT: {
@@ -288,6 +385,42 @@ void glView::DrawSnakeGame() {
 }
 
 void glView::DrawTetrisGame() {
+  ;
+  ;
+}
+
+void glView::DrawPauseMenu() {
+  static auto app_w = w / 2.f;
+  static auto app_h = h / 3.f;
+
+  static auto font = font_manager.getFont("jetbrains_regular");
+  static auto font_selected = font_manager.getFont("jetbrains_bold");
+
+  font.setPointSize(50);
+  font_selected.setPointSize(50);
+  font_selected.setBold(true);
+
+  QPainter painter(this);
+
+  auto x = app_w - 135;
+  auto y = app_h;
+  auto dy = 80.f;
+  int end = mvPauseMenu.size();
+
+  for (int i = 0; i < end; ++i) {
+    if (i == (int)mCurrentPauseMenu) {
+      painter.setPen(Qt::red);
+      painter.setFont(font_selected);
+      painter.drawText(x, y, mvPauseMenu[i].second.c_str());
+    } else {
+      painter.setPen(Qt::gray);
+      painter.setFont(font);
+      painter.drawText(x, y, mvPauseMenu[i].second.c_str());
+    }
+    y += dy;
+  }
+}
+void glView::DrawGameOverMenu() {
   ;
   ;
 }
