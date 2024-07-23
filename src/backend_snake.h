@@ -70,6 +70,11 @@ class SnakeGame : public ArcadeGame {
   void set_direction(Direction val);
   int get_height() const;
   int get_width() const;
+  enum class eState { GAMING, PAUSE, GAMEOVER };
+  void SetState(eState s);
+  eState GetState();
+  eState state;
+  bool ready_change_dir;
 };
 
 }  // namespace s21

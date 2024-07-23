@@ -23,8 +23,8 @@ void Controller::HandleKey(int aKey) {
       k = ArcadeGame::eKeys::Key_Right;
       break;
     }
-    case Qt::Key_Space: {
-      k = ArcadeGame::eKeys::Key_Space;
+    case Qt::Key_Escape: {
+      k = ArcadeGame::eKeys::Key_ESC;
       break;
     }
     default: {

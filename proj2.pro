@@ -14,7 +14,8 @@ SOURCES += \
     $${SRC_FOLDER}glview.cpp \
     $${SRC_FOLDER}backend_snake.cc \
     $${SRC_FOLDER}main.cpp \
-    src/texture_manager.cc
+    $${SRC_FOLDER}font_manager.cc \
+    $${SRC_FOLDER}texture_manager.cc
 
 HEADERS += \
     $${SRC_FOLDER}arcade_game_base.h \
@@ -22,7 +23,8 @@ HEADERS += \
     $${SRC_FOLDER}common_types.h \
     $${SRC_FOLDER}controller.h \
     $${SRC_FOLDER}glview.hpp \
-    src/texture_manager.h
+    $${SRC_FOLDER}font_manager.h \
+    $${SRC_FOLDER}texture_manager.h
 
 FORMS +=
 

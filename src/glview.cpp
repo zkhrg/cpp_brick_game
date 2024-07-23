@@ -26,8 +26,11 @@ glView::glView() : timer(new QTimer(this)) {
   h = 900;
   tile_size = w / 10;
   setFixedSize(w, h);
-  Controller controller{};
-  TextureManager texture_manager{};
+
+  font_manager.loadFont("jetbrains_regular",
+                        ":/fonts/JetBrainsMono-Regular.ttf");
+  font_manager.loadFont("jetbrains_bold", ":/fonts/JetBrainsMono-Bold.ttf");
+
   mvMenu.push_back({eMenu::TETRIS, "Tetris"});
   mvMenu.push_back({eMenu::SNAKE, "Snake"});
   mvMenu.push_back({eMenu::EXIT, "Exit"});
@@ -68,19 +71,19 @@ void glView::drawRectangleSprite(int x1, int y1, const QString &texturename,
   if (!texture) return;
 
   texture->bind();
+  // белый фон под картинку чтобы цвета не менялись
   glColor3f(1.0f, 1.0f, 1.0f);
 
   glEnable(GL_TEXTURE_2D);
 
-  // Координаты текстуры для 0°, 90°, 180°, 270°
   GLfloat texCoords[4][4][2] = {
-      {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}},  // 0°
-      {{1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}},  // 90°
-      {{1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}},  // 180°
-      {{0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}}   // 270°
+      {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}},  // 0
+      {{1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}},  // 90
+      {{1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}},  // 180
+      {{0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}}   // 270
   };
 
-  int r = rotation % 4;  // Обеспечивает допустимый диапазон [0, 3]
+  int r = rotation % 4;
 
   glBegin(GL_QUADS);
   for (int i = 0; i < 4; ++i) {
@@ -104,7 +107,6 @@ void glView::drawRectangleSprite(int x1, int y1, const QString &texturename,
 
   glDisable(GL_TEXTURE_2D);
   texture->release();
-  // update();
 }
 
 void glView::DrawUsingState() {
@@ -127,14 +129,18 @@ void glView::DrawMenu() {
   static auto app_w = w / 2.f;
   static auto app_h = h / 3.f;
 
-  static auto font = QFont("Courier", 25);
-  static auto font_selected = QFont("Courier", 30);
+  static auto font = font_manager.getFont("jetbrains_regular");
+  static auto font_selected = font_manager.getFont("jetbrains_bold");
+
+  font.setPointSize(70);
+  font_selected.setPointSize(70);
   font_selected.setBold(true);
+
   QPainter painter(this);
 
-  auto x = app_w - 100;
+  auto x = app_w - 135;
   auto y = app_h;
-  auto dy = 55.f;
+  auto dy = 100.f;
   int end = mvMenu.size();
 
   for (int i = 0; i < end; ++i) {
@@ -188,6 +194,11 @@ void glView::KeyPressedSnake(int aKey) {
       controller.HandleKey(aKey);
       break;
     }
+      // TODO:
+    case Qt::Key_Escape: {
+      controller.HandleKey(aKey);
+      break;
+    }
   }
 }
 
@@ -229,6 +240,14 @@ void glView::Processing() {
 // (с условно минимальной задержкой)
 void glView::DrawSnakeGame() {
   GameInfo gt = controller.GetData();
+  if (gt.state == eCommonTypesState::PAUSE) {
+    // render_pause()
+    // set pause at view
+  } else if (gt.state == eCommonTypesState::GAMEOVER) {
+    // render_gameo()
+    // set gamoever at view
+    // TODO: may вынести в процессинг чтобы в драу у меня лежала только игра.
+  }
   for (int i = 0; i < gt.height; i++) {
     for (int j = 0; j < gt.width; j++) {
       switch (gt.grid[i][j]) {

@@ -10,7 +10,9 @@ SnakeGame::SnakeGame()
       gen_(rd_()),
       distrib_(0, 20 * 10 - 1) {
   ;
-  snake_body.push_back({16, 7});
+  state = eState::GAMING;
+  ready_change_dir = true;
+  snake_body.push_back({9, 4});
   CreateField();
   AddSnakeToField();
   GenerateAppleIndex();
@@ -83,9 +85,9 @@ bool SnakeGame::isTimeToTick() {
   bool res = false;
   long long cur_time = GetTimeMs();
   if (cur_time - last_tick_time > times[level]) {
-    // res = (tp->game_state == start_state) ? 1 : 0;
-    res = true;
+    res = (state == eState::GAMING) ? true : false;
     last_tick_time = cur_time;
+    ready_change_dir = true;
   }
   return res;
 }
@@ -99,11 +101,11 @@ long long SnakeGame::GetTimeMs() {
 
 void SnakeGame::MakeTick() {
   if (!isTimeToTick()) return;
-  if (CheckFoodCollision()) {
+  if (CheckStopCollision()) {
+    SetState(eState::GAMEOVER);
+  } else if (CheckFoodCollision()) {
     GrowSnake();
     GenerateAppleIndex();
-  } else if (!CheckStopCollision()) {
-    exit(0);
   } else {
     MoveSnake();
   }
@@ -180,20 +182,19 @@ void SnakeGame::GrowSnake() {
  * @param val
  */
 void SnakeGame::set_direction(Direction val) {
+  if (!ready_change_dir) return;
   if ((dir == Direction::Down && val == Direction::Up) ||
       (dir == Direction::Up && val == Direction::Down) ||
       (dir == Direction::Left && val == Direction::Right) ||
       (dir == Direction::Right && val == Direction::Left)) {
     return;
   }
+  ready_change_dir = false;
   dir = val;
 }
 
 /**
  * @brief Проверка столкновения с едой
- *
- *
- *
  *
  * @return true столкнулись с едой
  * @return false не столкнулись с едой
@@ -206,15 +207,19 @@ bool SnakeGame::CheckFoodCollision() { return food_ind == *snake_body.begin(); }
  * @return true столкнулись с сегментом / стенкой.
  * @return false не столкнулись с сегментом / стенкой.
  */
-// TODO: rework не отрабывает на сегменты
 bool SnakeGame::CheckStopCollision() {
-  auto head = *snake_body.begin();
-  bool res = head.first >= 0 && head.second >= 0 && head.first < get_height() &&
-             head.second < get_width();
-  for (auto it = snake_body.begin()++; it != snake_body.end(); ++it) {
-    res &= (*it != head);
+  auto head = std::pair<int, int>{(*snake_body.begin()).first + m[dir].first,
+                                  (*snake_body.begin()).second + m[dir].second};
+
+  bool res = head.first < 0 || head.second < 0 || head.first >= get_height() ||
+             head.second >= get_width();
+
+  if (res != 1) {
+    auto next_tile = field_grid_[head.first][head.second];
+    res = (next_tile != 0 && next_tile != 2);
   }
-  return !res;
+
+  return res;
 }
 
 // для отдачи данных мне делаем их копию в кучу чтобы СЛУЧАЙНО не изменить
@@ -251,9 +256,22 @@ void SnakeGame::HandleKey(eKeys k) {
       set_direction(Direction::Right);
       break;
     }
+    case eKeys::Key_ESC: {
+      SetState(eState::PAUSE);
+      break;
+    }
     default: {
       break;
     }
   }
 }
+
+void SnakeGame::SetState(eState s) {
+  if (state == eState::PAUSE && s == eState::PAUSE) {
+    state = eState::GAMING;
+  } else if (state == eState::GAMING && s == eState::PAUSE) {
+    state = eState::PAUSE;
+  }
+}
+SnakeGame::eState SnakeGame::GetState() { return state; }
 }  // namespace s21

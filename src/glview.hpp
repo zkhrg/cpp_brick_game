@@ -12,6 +12,7 @@
 #include <QTimer>
 
 #include "controller.h"
+#include "font_manager.h"
 #include "texture_manager.h"
 
 class glView : public QOpenGLWidget {
@@ -48,6 +49,7 @@ class glView : public QOpenGLWidget {
   Controller controller;
   QTimer* timer;
   TextureManager texture_manager;
+  FontManager font_manager;
 };
 
 #endif // GLVIEW_HPP

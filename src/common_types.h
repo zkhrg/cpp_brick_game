@@ -1,13 +1,14 @@
 #ifndef COMMON_TYPES_H
 #define COMMON_TYPES_H
 
+enum class eGame { TETRIS, SNAKE };
+enum class eCommonTypesState { GAMING, PAUSE, GAMEOVER };
+
 struct GameInfo {
   int height;
   int width;
   int** grid;
-  int state;
+  eCommonTypesState state;
 };
-
-enum class eGame { TETRIS, SNAKE };
 
 #endif  // COMMON_TYPES_H
