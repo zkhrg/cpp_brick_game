@@ -5,6 +5,7 @@
 
 #include "arcade_game_base.h"
 #include "backend_snake.h"
+#include "backend_tetris.h"
 #include "common_types.h"
 // #include "brickgame_backend.h"
 

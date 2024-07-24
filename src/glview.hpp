@@ -10,6 +10,7 @@
 #include <QOpenGLWidget>
 #include <QPainter>
 #include <QTimer>
+#include <array>
 
 #include "controller.h"
 #include "font_manager.h"
@@ -47,6 +48,10 @@ class glView : public QOpenGLWidget {
   enum class eMenu { TETRIS, SNAKE, EXIT };
   enum class ePauseMenu { RESUME, GO_TO_MAIN_MENU };
   enum class eGameOverMenu { PLAY_AGAIN, GO_TO_MAIN_MENU };
+  static inline std::array<QColor, 7> TetrisFiguresColors = {
+      QColor(255, 255, 0),   QColor(0, 0, 255),     QColor(255, 0, 0),
+      QColor(255, 192, 203), QColor(238, 130, 238), QColor(255, 165, 0),
+      QColor(165, 42, 42)};
 
  private:
   int w;

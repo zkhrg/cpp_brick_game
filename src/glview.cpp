@@ -403,8 +403,16 @@ void glView::DrawSnakeGame() {
 }
 
 void glView::DrawTetrisGame() {
-  ;
-  ;
+  GameInfo gt = controller.GetData();
+  for (int i = 0; i < gt.height; i++) {
+    for (int j = 0; j < gt.width; j++) {
+      if (gt.grid[i][j] > 0) {
+        drawRectangle(j * tile_size, i * tile_size,
+                      TetrisFiguresColors[(gt.grid[i][j] - 1) % 7]);
+      }
+    }
+  }
+  update();
 }
 
 void glView::DrawPauseMenu() {

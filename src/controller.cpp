@@ -39,6 +39,7 @@ void Controller::SetGame(eGame g) {
   evgame = g;
   switch (evgame) {
     case eGame::TETRIS:
+      current_game = std::make_unique<s21::TetrisGame>();
       break;
     case eGame::SNAKE:
       current_game = std::make_unique<s21::SnakeGame>();

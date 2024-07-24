@@ -7,6 +7,7 @@
 
 #include "arcade_game_base.h"
 
+namespace s21 {
 class TetrisGame : public ArcadeGame {
  public:
   TetrisGame();
@@ -62,6 +63,12 @@ class TetrisGame : public ArcadeGame {
   std::uniform_int_distribution<> distrib_;
   // the end of random sh1t
 
+  /********************************* override ********/
+  void HandleKey(eKeys k) override {};
+  GameInfo GetData() const override;
+  void MakeTick() override;
+  /***************************************************/
+
   void InitTetramino();
   void ClearPos();
   void AddTetraminoToField();
@@ -80,7 +87,7 @@ class TetrisGame : public ArcadeGame {
   void RotateFigure();
   void ApplySignal();
   bool IsTimeToTick();
-  void MakeTick();
+
   long long GetTimeMs();
   void SetNewSpeed();
   void ReadHighscore();
@@ -88,5 +95,5 @@ class TetrisGame : public ArcadeGame {
   bool CanAddTetramino();
   void TogglePause();
 };
-
+};  // namespace s21
 #endif  // BACKEND_TETRIS_H

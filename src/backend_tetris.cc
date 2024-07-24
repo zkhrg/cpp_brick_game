@@ -1,5 +1,7 @@
 #include "backend_tetris.h"
 
+namespace s21 {
+
 TetrisGame::TetrisGame() : game_last_tick_time(0), level(0), gen_(rd_()) {
   cur_figure = (eFigure)(distrib_(gen_) % figures_count);
   next_figure = (eFigure)(distrib_(gen_) % figures_count);
@@ -8,7 +10,6 @@ TetrisGame::TetrisGame() : game_last_tick_time(0), level(0), gen_(rd_()) {
   AddTetraminoToField();
   game_highscore = 0;
   ReadHighscore();
-  game_last_tick_time = GetTimeMs();
   game_speed = 0;
   game_tmp_speed = 0;
   game_state = eGameState::START;
@@ -267,7 +268,7 @@ void TetrisGame::MakeTick() {
       figures_stats[(int)cur_figure]++;
       next_figure = (eFigure)(distrib_(gen_) % figures_count);
       AddTetraminoToField();
-      stats_render_ready = 1;
+      stats_render_ready = true;
     } else {
       game_state = eGameState::GAMOVER;
     }
@@ -275,7 +276,7 @@ void TetrisGame::MakeTick() {
     MakeFallTetramino();
     game_speed = game_tmp_speed;
   }
-  render_ready = 1;
+  render_ready = true;
 }
 
 long long TetrisGame::GetTimeMs() {
@@ -309,3 +310,19 @@ bool TetrisGame::CanAddTetramino() {
   }
   return res;
 }
+
+GameInfo TetrisGame::GetData() const {
+  GameInfo gi{};
+  gi.grid = new int*[field_height];
+  for (int i = 0; i < field_height; ++i) {
+    gi.grid[i] = new int[field_width];
+    for (int j = 0; j < field_width; ++j) {
+      gi.grid[i][j] = field_grid[i * field_width + j];
+    }
+  }
+  gi.height = field_height;
+  gi.width = field_width;
+  gi.state = (eCommonTypesState)game_state;
+  return gi;
+}
+};  // namespace s21
