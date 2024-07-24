@@ -39,7 +39,7 @@ void SnakeGame::PrintField() {
       else if (field_grid_[i][j] == 1) {
         printf("%c", 'X');
       } else {
-        printf("%c", 'o');
+        printf("%c", '@');
       }
     }
     std::cout << std::endl;
