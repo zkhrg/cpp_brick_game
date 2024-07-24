@@ -15,7 +15,8 @@ SOURCES += \
     $${SRC_FOLDER}backend_snake.cc \
     $${SRC_FOLDER}main.cpp \
     $${SRC_FOLDER}font_manager.cc \
-    $${SRC_FOLDER}texture_manager.cc
+    $${SRC_FOLDER}texture_manager.cc \
+    src/backend_tetris.cc
 
 HEADERS += \
     $${SRC_FOLDER}arcade_game_base.h \
@@ -24,7 +25,8 @@ HEADERS += \
     $${SRC_FOLDER}controller.h \
     $${SRC_FOLDER}glview.hpp \
     $${SRC_FOLDER}font_manager.h \
-    $${SRC_FOLDER}texture_manager.h
+    $${SRC_FOLDER}texture_manager.h \
+    src/backend_tetris.h
 
 FORMS +=
 

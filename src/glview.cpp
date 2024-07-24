@@ -58,8 +58,8 @@ glView::glView() : timer(new QTimer(this)) {
   connect(timer, &QTimer::timeout, this, &glView::paintGL);
   timer->start(1000 / 60);
   setWindowTitle("brick game");
-  w = 450;
-  h = 900;
+  w = 400;
+  h = 800;
   tile_size = w / 10;
   setFixedSize(w, h);
 
@@ -73,6 +73,9 @@ glView::glView() : timer(new QTimer(this)) {
 
   mvPauseMenu.push_back({ePauseMenu::RESUME, "Resume"});
   mvPauseMenu.push_back({ePauseMenu::GO_TO_MAIN_MENU, "Return to menu"});
+
+  mvGameOverMenu.push_back({eGameOverMenu::PLAY_AGAIN, "Play again"});
+  mvGameOverMenu.push_back({eGameOverMenu::GO_TO_MAIN_MENU, "Return to menu"});
 }
 
 void glView::initializeGL() {
@@ -278,16 +281,22 @@ void glView::keyPressedPauseMenu(int aKey) {
 void glView::keyPressedGameOverMenu(int aKey) {
   switch (aKey) {
     case Qt::Key_Up: {
-      --mCurrentMenu;
+      --mCurrentGameOverMenu;
       break;
     }
     case Qt::Key_Down: {
-      ++mCurrentMenu;
+      ++mCurrentGameOverMenu;
       break;
     }
     case Qt::Key_Enter:
     case Qt::Key_Return: {
-      mState = (eState)mCurrentMenu;
+      if (mCurrentGameOverMenu == eGameOverMenu::PLAY_AGAIN) {
+        mState = prevState;
+        if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
+        if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
+      } else {
+        mState = eState::MENU;
+      }
       break;
     }
   }
@@ -317,6 +326,7 @@ void glView::keyPressEvent(QKeyEvent *apKeyEvent) {
 void glView::Processing() {
   switch ((int)mState) {
     case (int)eState::TETRIS: {
+      // TODO: rework
       // можно создавать экземпляр а потом его грохать
       break;
     }
@@ -337,14 +347,22 @@ void glView::Processing() {
 // (с условно минимальной задержкой)
 void glView::DrawSnakeGame() {
   GameInfo gt = controller.GetData();
-  if (gt.state == eCommonTypesState::PAUSE) {
-    // render_pause()
-    // set pause at view
-  } else if (gt.state == eCommonTypesState::GAMEOVER) {
-    // render_gameo()
-    // set gamoever at view
-    // TODO: may вынести в процессинг чтобы в драу у меня лежала только игра.
+  // need to write converter
+  switch (gt.state) {
+    case eCommonTypesState::GAMEOVER: {
+      prevState = mState;
+      mState = eState::GAMEOVER;
+    }
   }
+
+  // if (gt.state == eCommonTypesState::PAUSE) {
+  // render_pause()
+  // set pause at view
+  // } else if (gt.state == eCommonTypesState::GAMEOVER) {
+  // render_gameo()
+  // set gamoever at view
+  // TODO: may вынести в процессинг чтобы в драу у меня лежала только игра.
+  // }
   for (int i = 0; i < gt.height; i++) {
     for (int j = 0; j < gt.width; j++) {
       switch (gt.grid[i][j]) {
@@ -421,6 +439,33 @@ void glView::DrawPauseMenu() {
   }
 }
 void glView::DrawGameOverMenu() {
-  ;
-  ;
+  static auto app_w = w / 2.f;
+  static auto app_h = h / 3.f;
+
+  static auto font = font_manager.getFont("jetbrains_regular");
+  static auto font_selected = font_manager.getFont("jetbrains_bold");
+
+  font.setPointSize(50);
+  font_selected.setPointSize(50);
+  font_selected.setBold(true);
+
+  QPainter painter(this);
+
+  auto x = app_w - 135;
+  auto y = app_h;
+  auto dy = 80.f;
+  int end = mvGameOverMenu.size();
+
+  for (int i = 0; i < end; ++i) {
+    if (i == (int)mCurrentGameOverMenu) {
+      painter.setPen(Qt::red);
+      painter.setFont(font_selected);
+      painter.drawText(x, y, mvGameOverMenu[i].second.c_str());
+    } else {
+      painter.setPen(Qt::gray);
+      painter.setFont(font);
+      painter.drawText(x, y, mvGameOverMenu[i].second.c_str());
+    }
+    y += dy;
+  }
 }

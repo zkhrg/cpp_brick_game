@@ -235,6 +235,7 @@ GameInfo SnakeGame::GetData() const {
   }
   gi.height = get_height();
   gi.width = get_width();
+  gi.state = (eCommonTypesState)state;
   return gi;
 }
 
@@ -271,6 +272,8 @@ void SnakeGame::SetState(eState s) {
     state = eState::GAMING;
   } else if (state == eState::GAMING && s == eState::PAUSE) {
     state = eState::PAUSE;
+  } else if (s == eState::GAMEOVER) {
+    state = s;
   }
 }
 SnakeGame::eState SnakeGame::GetState() { return state; }

@@ -54,6 +54,8 @@ class glView : public QOpenGLWidget {
   int tile_size;
   std::vector<std::pair<eMenu, std::string>> mvMenu;
   std::vector<std::pair<ePauseMenu, std::string>> mvPauseMenu;
+  std::vector<std::pair<eGameOverMenu, std::string>> mvGameOverMenu;
+
   eMenu mCurrentMenu{eMenu::TETRIS};
   ePauseMenu mCurrentPauseMenu{ePauseMenu::RESUME};
   eGameOverMenu mCurrentGameOverMenu{eGameOverMenu::PLAY_AGAIN};
