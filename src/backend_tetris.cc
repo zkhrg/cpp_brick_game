@@ -12,6 +12,7 @@ TetrisGame::TetrisGame() : game_last_tick_time(0), level(0), gen_(rd_()) {
   ReadHighscore();
   game_speed = 0;
   game_state = eGameState::START;
+  game_points = 0;
   render_ready = true;
   stats_render_ready = true;
   values_render_ready = true;
@@ -322,6 +323,8 @@ GameInfo TetrisGame::GetData() const {
   gi.width = field_width;
   gi.state = (eCommonTypesState)game_state;
   gi.next_fig = (int)next_figure;
+  gi.points = game_points;
+  gi.level = game_speed;
   return gi;
 }
 

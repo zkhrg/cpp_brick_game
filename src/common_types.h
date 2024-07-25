@@ -9,6 +9,10 @@ struct GameInfo {
   int width;
   int** grid;
   int next_fig;
+  int figures_stats[7];
+  int level;
+  int points;
+  int record;
   eCommonTypesState state;
 };
 

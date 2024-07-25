@@ -187,6 +187,7 @@ void glView::DrawUsingState(GameInfo& gi) {
 }
 
 void glView::DrawMenu() {
+  setWindowTitle("Brick Game | Main Menu");
   static auto app_w = w / 2.f;
   static auto app_h = h / 3.f;
 
@@ -233,6 +234,10 @@ GameInfo glView::Processing() {
 
 void glView::DrawSnakeGame(GameInfo& gi) {
   int transitions[4] = {0, 2, 1, 3};
+  char s[128];
+  sprintf(s, "Snake Game | Points: %3d | Level: %3d", gi.points, gi.level);
+
+  setWindowTitle(s);
   for (int i = 0; i < gi.height; i++) {
     for (int j = 0; j < gi.width; j++) {
       if (gi.grid[i][j] == 1) {
@@ -248,6 +253,10 @@ void glView::DrawSnakeGame(GameInfo& gi) {
 }
 
 void glView::DrawTetrisGame(GameInfo& gi) {
+  char s[128];
+  sprintf(s, "Tetris Game | Points: %3d | Level: %3d", gi.points, gi.level);
+
+  setWindowTitle(s);
   setFixedSize(w * 3 + 1 * tile_size, h);
   int start = w;
 
@@ -454,6 +463,7 @@ void glView::KeyPressedMenu(int aKey) {
 }
 
 void glView::DrawPauseMenu() {
+  setWindowTitle("Brick Game | Pause");
   setFixedSize(w, h);
 
   static auto app_w = w / 2.f;
@@ -488,6 +498,7 @@ void glView::DrawPauseMenu() {
 }
 
 void glView::DrawGameOverMenu() {
+  setWindowTitle("Brick Game | GameOver");
   setFixedSize(w, h);
 
   static auto app_w = w / 2.f;

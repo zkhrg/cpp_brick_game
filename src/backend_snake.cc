@@ -236,6 +236,7 @@ GameInfo SnakeGame::GetData() const {
   gi.height = get_height();
   gi.width = get_width();
   gi.state = (eCommonTypesState)state;
+  gi.points = snake_body.size() - 1;
   return gi;
 }
 
