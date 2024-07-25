@@ -27,20 +27,20 @@ class glView : public QOpenGLWidget {
   void resizeGL(int h, int w) override;
   // void updateScene(GameInfo* gi);
   void DrawMenu();
-  void KeyReleasedMenu(int aKey);
+  void KeyPressedMenu(int aKey);
   void KeyPressedSnake(int aKey);
   void KeyPressedTetris(int aKey);
   void keyPressEvent(QKeyEvent* apKeyEvent) override;
-  void keyPressedPauseMenu(int aKey);
-  void keyPressedGameOverMenu(int aKey);
+  void KeyPressedPauseMenu(int aKey);
+  void KeyPressedGameOverMenu(int aKey);
 
-  void Processing();
-  void DrawUsingState();
+  GameInfo Processing();
+  void DrawUsingState(GameInfo& gi);
 
-  void DrawSnakeGame();
+  void DrawSnakeGame(GameInfo& gi);
   void DrawGameOverMenu();
   void DrawPauseMenu();
-  void DrawTetrisGame();
+  void DrawTetrisGame(GameInfo& gi);
 
   void SendDataToController();
   void GetDataFromController();

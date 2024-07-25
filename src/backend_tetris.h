@@ -28,7 +28,6 @@ class TetrisGame : public ArcadeGame {
 
   int game_points;
   int game_speed;
-  int game_tmp_speed;
   int game_pause;
   int game_highscore;
   long long game_last_tick_time;

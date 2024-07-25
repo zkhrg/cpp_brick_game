@@ -1,6 +1,8 @@
 #include "glview.hpp"
 
-glView::eMenu operator++(glView::eMenu &aMenu) {
+/**************************************overrides***************************/
+
+glView::eMenu operator++(glView::eMenu& aMenu) {
   if (aMenu == glView::eMenu::EXIT) {
     aMenu = glView::eMenu::TETRIS;
     return aMenu;
@@ -9,7 +11,7 @@ glView::eMenu operator++(glView::eMenu &aMenu) {
   return aMenu;
 }
 
-glView::eMenu operator--(glView::eMenu &aMenu) {
+glView::eMenu operator--(glView::eMenu& aMenu) {
   if (aMenu == glView::eMenu::TETRIS) {
     aMenu = glView::eMenu::EXIT;
     return aMenu;
@@ -18,7 +20,7 @@ glView::eMenu operator--(glView::eMenu &aMenu) {
   return aMenu;
 }
 
-glView::ePauseMenu operator++(glView::ePauseMenu &aPauseMenu) {
+glView::ePauseMenu operator++(glView::ePauseMenu& aPauseMenu) {
   if (aPauseMenu == glView::ePauseMenu::GO_TO_MAIN_MENU) {
     aPauseMenu = glView::ePauseMenu::RESUME;
     return aPauseMenu;
@@ -27,7 +29,7 @@ glView::ePauseMenu operator++(glView::ePauseMenu &aPauseMenu) {
   return aPauseMenu;
 }
 
-glView::ePauseMenu operator--(glView::ePauseMenu &aPauseMenu) {
+glView::ePauseMenu operator--(glView::ePauseMenu& aPauseMenu) {
   if (aPauseMenu == glView::ePauseMenu::RESUME) {
     aPauseMenu = glView::ePauseMenu::GO_TO_MAIN_MENU;
     return aPauseMenu;
@@ -36,7 +38,7 @@ glView::ePauseMenu operator--(glView::ePauseMenu &aPauseMenu) {
   return aPauseMenu;
 }
 
-glView::eGameOverMenu operator++(glView::eGameOverMenu &aGameOverMenu) {
+glView::eGameOverMenu operator++(glView::eGameOverMenu& aGameOverMenu) {
   if (aGameOverMenu == glView::eGameOverMenu::GO_TO_MAIN_MENU) {
     aGameOverMenu = glView::eGameOverMenu::PLAY_AGAIN;
     return aGameOverMenu;
@@ -45,7 +47,7 @@ glView::eGameOverMenu operator++(glView::eGameOverMenu &aGameOverMenu) {
   return aGameOverMenu;
 }
 
-glView::eGameOverMenu operator--(glView::eGameOverMenu &aGameOverMenu) {
+glView::eGameOverMenu operator--(glView::eGameOverMenu& aGameOverMenu) {
   if (aGameOverMenu == glView::eGameOverMenu::PLAY_AGAIN) {
     aGameOverMenu = glView::eGameOverMenu::GO_TO_MAIN_MENU;
     return aGameOverMenu;
@@ -53,6 +55,8 @@ glView::eGameOverMenu operator--(glView::eGameOverMenu &aGameOverMenu) {
   aGameOverMenu = glView::eGameOverMenu(int(aGameOverMenu) - 1);
   return aGameOverMenu;
 }
+
+/**************************************************************************/
 
 glView::glView() : timer(new QTimer(this)) {
   connect(timer, &QTimer::timeout, this, &glView::paintGL);
@@ -90,8 +94,9 @@ void glView::initializeGL() {
 void glView::paintGL() {
   glClearColor(0.0, 1.0, 1.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT);
-  Processing();
-  DrawUsingState();
+  GameInfo gi = Processing();
+  DrawUsingState(gi);
+  update();
 }
 
 void glView::resizeGL(int w, int h) {
@@ -159,16 +164,16 @@ void glView::drawRectangleSprite(int x1, int y1, const QString &texturename,
   texture->release();
 }
 
-void glView::DrawUsingState() {
+void glView::DrawUsingState(GameInfo& gi) {
   switch (mState) {
     case eState::MENU:
       DrawMenu();
       break;
     case eState::SNAKE:
-      DrawSnakeGame();
+      DrawSnakeGame(gi);
       break;
     case eState::TETRIS:
-      DrawTetrisGame();
+      DrawTetrisGame(gi);
       break;
     case eState::PAUSE:
       DrawPauseMenu();
@@ -213,28 +218,91 @@ void glView::DrawMenu() {
   }
 }
 
-void glView::KeyReleasedMenu(int aKey) {
-  switch (aKey) {
-    case Qt::Key_Up: {
-      --mCurrentMenu;
-      break;
-    }
-    case Qt::Key_Down: {
-      ++mCurrentMenu;
-      break;
-    }
-    case Qt::Key_Enter:
-    case Qt::Key_Return: {
-      mState = (eState)mCurrentMenu;
-      if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
-      if (mState == eState::TETRIS) {
-        controller.SetGame(eGame::TETRIS);
-        setFixedSize(w * 3 + tile_size, h);
+GameInfo glView::Processing() {
+  GameInfo gi = controller.GetData();
+  if (gi.state == eCommonTypesState::GAMEOVER) {
+    prevState = mState;
+    controller.SetGame(eGame::NO_GAME);
+    mState = eState::GAMEOVER;
+  }
+  if (mState == eState::EXIT) {
+    close();
+  }
+  return gi;
+}
+
+void glView::DrawSnakeGame(GameInfo& gi) {
+  int transitions[4] = {0, 2, 1, 3};
+  for (int i = 0; i < gi.height; i++) {
+    for (int j = 0; j < gi.width; j++) {
+      if (gi.grid[i][j] == 1) {
+        drawRectangleSprite(j * tile_size, i * tile_size, "snakebody", 0);
+      } else if (gi.grid[i][j] == 2) {
+        drawRectangle(j * tile_size, i * tile_size, Qt::magenta);
+      } else if (gi.grid[i][j] < 0) {
+        drawRectangleSprite(j * tile_size, i * tile_size, "snakehead",
+                            transitions[-(gi.grid[i][j] + 1)]);
       }
-      break;
     }
   }
-  update();
+}
+
+void glView::DrawTetrisGame(GameInfo& gi) {
+  setFixedSize(w * 3 + 1 * tile_size, h);
+  int start = w;
+
+  for (int i = 0; i < gi.height; i++) {
+    for (int j = 0; j < gi.width; j++) {
+      if (gi.grid[i][j] > 0) {
+        drawRectangle(j * tile_size + start, i * tile_size,
+                      TetrisFiguresColors[(gi.grid[i][j] - 1) % 7]);
+      }
+    }
+  }
+
+  for (int i = 0; i < gi.height; i++) {
+    drawRectangle(start - tile_size, i * tile_size, Qt::black);
+    drawRectangle((start * 2), i * tile_size, Qt::black);
+  }
+
+  for (int i = 0; i < 7; i++) {
+    for (int j = 0; j < 4; j++) {
+      int k = i;
+      if (k == 6) {
+        k = 5;
+      } else if (k == 5) {
+        k = 6;  // yandex-style code | shout out kostik
+      }
+      drawRectangle(figures_stats_coords[i][j][1] * tile_size,
+                    figures_stats_coords[i][j][0] * tile_size,
+                    TetrisFiguresColors[k % 7]);
+    }
+  }
+
+  int bits = PREVIEW_MASKS[gi.next_fig];
+  int start_j = w * 2 + tile_size * 3;
+  int start_i = 2 * tile_size;
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 6; j++) {
+      if (bits & 1) {
+        drawRectangle(start_j + j * tile_size, start_i + i * tile_size,
+                      TetrisFiguresColors[gi.next_fig % 7]);
+      }
+      bits >>= 1;
+    }
+  }
+
+  start_j = w * 2 + tile_size * 2;
+
+  for (int i = 1; i < 4; i++) {
+    drawRectangle(start_j, i * tile_size, Qt::black);
+    drawRectangle(start_j + 7 * tile_size, i * tile_size, Qt::black);
+  }
+
+  for (int j = start_j / tile_size; j <= start_j / tile_size + 7; j++) {
+    drawRectangle(j * tile_size, 1 * tile_size, Qt::black);
+    drawRectangle(j * tile_size, 4 * tile_size, Qt::black);
+  }
 }
 
 void glView::KeyPressedSnake(int aKey) {
@@ -285,6 +353,7 @@ void glView::KeyPressedTetris(int aKey) {
     }
       // TODO:
     case Qt::Key_Escape: {
+      setFixedSize(w, h);
       controller.HandleKey(aKey);
       prevState = mState;
       mState = eState::PAUSE;
@@ -293,7 +362,7 @@ void glView::KeyPressedTetris(int aKey) {
   }
 }
 
-void glView::keyPressedPauseMenu(int aKey) {
+void glView::KeyPressedPauseMenu(int aKey) {
   switch (aKey) {
     case Qt::Key_Up: {
       --mCurrentPauseMenu;
@@ -309,15 +378,15 @@ void glView::keyPressedPauseMenu(int aKey) {
         mState = prevState;
         controller.HandleKey(Qt::Key_Escape);
       } else {
+        controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
       }
       break;
     }
   }
-  update();
 }
 
-void glView::keyPressedGameOverMenu(int aKey) {
+void glView::KeyPressedGameOverMenu(int aKey) {
   switch (aKey) {
     case Qt::Key_Up: {
       --mCurrentGameOverMenu;
@@ -334,18 +403,18 @@ void glView::keyPressedGameOverMenu(int aKey) {
         if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
         if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
       } else {
+        controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
       }
       break;
     }
   }
-  update();
 }
 
-void glView::keyPressEvent(QKeyEvent *apKeyEvent) {
+void glView::keyPressEvent(QKeyEvent* apKeyEvent) {
   switch (mState) {
     case eState::MENU:
-      KeyReleasedMenu(apKeyEvent->key());
+      KeyPressedMenu(apKeyEvent->key());
     case eState::TETRIS:
       KeyPressedTetris(apKeyEvent->key());
       break;
@@ -353,162 +422,40 @@ void glView::keyPressEvent(QKeyEvent *apKeyEvent) {
       KeyPressedSnake(apKeyEvent->key());
       break;
     case eState::PAUSE:
-      keyPressedPauseMenu(apKeyEvent->key());
+      KeyPressedPauseMenu(apKeyEvent->key());
       break;
     case eState::GAMEOVER:
-      keyPressedGameOverMenu(apKeyEvent->key());
+      KeyPressedGameOverMenu(apKeyEvent->key());
       break;
     case eState::EXIT:
       break;
   }
 }
 
-void glView::Processing() {
-  switch ((int)mState) {
-    case (int)eState::TETRIS: {
-      // TODO: rework
-      // можно создавать экземпляр а потом его грохать
+void glView::KeyPressedMenu(int aKey) {
+  switch (aKey) {
+    case Qt::Key_Up: {
+      --mCurrentMenu;
       break;
     }
-    case (int)eState::SNAKE: {
-      // можно создавать экземпляр а потом его грохать
-      // TODO: rework
+    case Qt::Key_Down: {
+      ++mCurrentMenu;
       break;
     }
-    case (int)eState::EXIT: {
-      close();
+    case Qt::Key_Enter:
+    case Qt::Key_Return: {
+      mState = (eState)mCurrentMenu;
+      if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
+      if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
+
       break;
     }
   }
-}
-
-// Условно нажатия в контороллер пушит фронт
-// Фронт так же оправшивает контроллер постоянно
-// (с условно минимальной задержкой)
-void glView::DrawSnakeGame() {
-  GameInfo gt = controller.GetData();
-  // need to write converter
-  switch (gt.state) {
-    case eCommonTypesState::GAMEOVER: {
-      prevState = mState;
-      mState = eState::GAMEOVER;
-    }
-  }
-
-  // if (gt.state == eCommonTypesState::PAUSE) {
-  // render_pause()
-  // set pause at view
-  // } else if (gt.state == eCommonTypesState::GAMEOVER) {
-  // render_gameo()
-  // set gamoever at view
-  // TODO: may вынести в процессинг чтобы в драу у меня лежала только игра.
-  // }
-  for (int i = 0; i < gt.height; i++) {
-    for (int j = 0; j < gt.width; j++) {
-      switch (gt.grid[i][j]) {
-        case 1: {
-          drawRectangleSprite(j * tile_size, i * tile_size, "snakebody", 0);
-          break;
-        }
-        case 2: {
-          drawRectangle(j * tile_size, i * tile_size, Qt::magenta);
-          break;
-        }
-        // TODO: rework
-        case -1: {
-          drawRectangleSprite(j * tile_size, i * tile_size, "snakehead", 0);
-          break;
-        }
-        case -2: {
-          drawRectangleSprite(j * tile_size, i * tile_size, "snakehead", 2);
-          break;
-        }
-        case -3: {
-          drawRectangleSprite(j * tile_size, i * tile_size, "snakehead", 1);
-          break;
-        }
-        case -4: {
-          drawRectangleSprite(j * tile_size, i * tile_size, "snakehead", 3);
-          break;
-        }
-      }
-    }
-  }
-  for (int i = 0; i < gt.height; ++i) {
-    delete[] gt.grid[i];
-  }
-  delete[] gt.grid;
-
-  update();
-}
-
-void glView::DrawTetrisGame() {
-  int start = w;
-  GameInfo gt = controller.GetData();
-  switch (gt.state) {
-    case eCommonTypesState::GAMEOVER: {
-      prevState = mState;
-      mState = eState::GAMEOVER;
-    }
-  }
-
-  for (int i = 0; i < gt.height; i++) {
-    for (int j = 0; j < gt.width; j++) {
-      if (gt.grid[i][j] > 0) {
-        drawRectangle(j * tile_size + start, i * tile_size,
-                      TetrisFiguresColors[(gt.grid[i][j] - 1) % 7]);
-      }
-    }
-  }
-
-  for (int i = 0; i < gt.height; i++) {
-    drawRectangle(start - tile_size, i * tile_size, Qt::black);
-    drawRectangle((start * 2), i * tile_size, Qt::black);
-  }
-
-  for (int i = 0; i < 7; i++) {
-    for (int j = 0; j < 4; j++) {
-      int k = i;
-      if (k == 6) {
-        k = 5;
-      } else if (k == 5) {
-        k = 6;  // yandex-style code | shout out kostik
-      }
-      drawRectangle(figures_stats_coords[i][j][1] * tile_size,
-                    figures_stats_coords[i][j][0] * tile_size,
-                    TetrisFiguresColors[k % 7]);
-    }
-  }
-
-  int bits = PREVIEW_MASKS[gt.next_fig];
-  int start_j = w * 2 + tile_size * 3;
-  int start_i = 2 * tile_size;
-  for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 6; j++) {
-      if (bits & 1) {
-        drawRectangle(start_j + j * tile_size, start_i + i * tile_size,
-                      TetrisFiguresColors[gt.next_fig % 7]);
-      }
-      bits >>= 1;
-    }
-  }
-
-  start_j = w * 2 + tile_size * 2;
-  start_i = 2 * tile_size;
-
-  for (int i = 1; i < 4; i++) {
-    drawRectangle(start_j, i * tile_size, Qt::black);
-    drawRectangle(start_j + 7 * tile_size, i * tile_size, Qt::black);
-  }
-
-  for (int j = start_j / tile_size; j <= start_j / tile_size + 7; j++) {
-    drawRectangle(j * tile_size, 1 * tile_size, Qt::black);
-    drawRectangle(j * tile_size, 4 * tile_size, Qt::black);
-  }
-  update();
 }
 
 void glView::DrawPauseMenu() {
+  setFixedSize(w, h);
+
   static auto app_w = w / 2.f;
   static auto app_h = h / 3.f;
 
@@ -539,7 +486,10 @@ void glView::DrawPauseMenu() {
     y += dy;
   }
 }
+
 void glView::DrawGameOverMenu() {
+  setFixedSize(w, h);
+
   static auto app_w = w / 2.f;
   static auto app_h = h / 3.f;
 

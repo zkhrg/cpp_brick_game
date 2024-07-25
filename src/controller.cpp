@@ -44,15 +44,21 @@ void Controller::SetGame(eGame g) {
     case eGame::SNAKE:
       current_game = std::make_unique<s21::SnakeGame>();
       break;
+    case eGame::NO_GAME:
+      current_game = nullptr;
+      break;
   }
 }
 
 GameInfo Controller::GetData() {
-  current_game->MakeTick();
+  MakeTick();
   if (current_game != nullptr) {
     return current_game->GetData();
   }
   return GameInfo{};
 }
 
-void Controller::MakeTick() { current_game->MakeTick(); }
+void Controller::MakeTick() {
+  if (current_game == nullptr) return;
+  current_game->MakeTick();
+}

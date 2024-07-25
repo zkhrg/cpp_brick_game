@@ -11,7 +11,6 @@ TetrisGame::TetrisGame() : game_last_tick_time(0), level(0), gen_(rd_()) {
   game_highscore = 0;
   ReadHighscore();
   game_speed = 0;
-  game_tmp_speed = 0;
   game_state = eGameState::START;
   render_ready = true;
   stats_render_ready = true;
@@ -165,9 +164,9 @@ void TetrisGame::AddPoints() {
 
 void TetrisGame::SetNewSpeed() {
   if ((game_points / 600) >= levels_count) {
-    game_tmp_speed = levels_count - 1;
+    game_speed = levels_count - 1;
   } else {
-    game_tmp_speed = (game_points / 600);
+    game_speed = (game_points / 600);
   }
 }
 
@@ -274,7 +273,6 @@ void TetrisGame::MakeTick() {
     }
   } else {
     MakeFallTetramino();
-    game_speed = game_tmp_speed;
   }
   render_ready = true;
 }
