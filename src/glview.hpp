@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QMatrix4x4>
 #include <QMouseEvent>
 #include <QOpenGLWidget>
 #include <QPainter>
@@ -23,10 +24,12 @@ class glView : public QOpenGLWidget {
   void initializeGL() override;
   void paintGL() override;
   void drawRectangle(int x1, int y1, QColor color);
+  void resizeGL(int h, int w) override;
   // void updateScene(GameInfo* gi);
   void DrawMenu();
   void KeyReleasedMenu(int aKey);
   void KeyPressedSnake(int aKey);
+  void KeyPressedTetris(int aKey);
   void keyPressEvent(QKeyEvent* apKeyEvent) override;
   void keyPressedPauseMenu(int aKey);
   void keyPressedGameOverMenu(int aKey);
@@ -71,5 +74,21 @@ class glView : public QOpenGLWidget {
   TextureManager texture_manager;
   FontManager font_manager;
 };
+
+#define XS 1
+#define YS 1
+static const int figures_stats_coords[7][4][2] = {
+    {{YS, XS}, {YS, XS + 1}, {YS, XS + 2}, {YS + 1, XS}},
+    {{YS + 3, XS}, {YS + 3, XS + 1}, {YS + 3, XS + 2}, {YS + 4, XS + 2}},
+    {{YS + 6, XS}, {YS + 6, XS + 1}, {YS + 7, XS + 1}, {YS + 7, XS + 2}},
+    {{YS + 9, XS + 1}, {YS + 9, XS + 2}, {YS + 10, XS + 1}, {YS + 10, XS}},
+    {{YS + 12, XS}, {YS + 12, XS + 1}, {YS + 12, XS + 2}, {YS + 13, XS + 1}},
+    {{YS + 15, XS}, {YS + 15, XS + 1}, {YS + 16, XS}, {YS + 16, XS + 1}},
+    {{YS + 18, XS}, {YS + 18, XS + 1}, {YS + 18, XS + 2}, {YS + 18, XS + 3}},
+};
+
+static const int PREVIEW_MASKS[7] = {
+    0b000100011100, 0b010000011100, 0b011000001100, 0b001100011000,
+    0b001000011100, 0b011110000000, 0b001100001100};
 
 #endif // GLVIEW_HPP

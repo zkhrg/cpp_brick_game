@@ -8,6 +8,7 @@ struct GameInfo {
   int height;
   int width;
   int** grid;
+  int next_fig;
   eCommonTypesState state;
 };
 

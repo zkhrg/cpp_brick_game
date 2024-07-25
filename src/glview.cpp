@@ -81,7 +81,7 @@ glView::glView() : timer(new QTimer(this)) {
 void glView::initializeGL() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, w, h, 0, 0, 1);
+  glOrtho(0, w, h, 0, -1, 1);
 
   texture_manager.loadTexture("snakehead", ":/images/snakehead.png");
   texture_manager.loadTexture("snakebody", ":/images/snakebody.png");
@@ -92,6 +92,14 @@ void glView::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT);
   Processing();
   DrawUsingState();
+}
+
+void glView::resizeGL(int w, int h) {
+  glViewport(0, 0, w, h);
+  QMatrix4x4 projection;
+  projection.ortho(0, w, h, 0, -1, 1);
+  glMatrixMode(GL_PROJECTION);
+  glLoadMatrixf(projection.constData());
 }
 
 // нужно будет как-то еще передавать сюда цвет
@@ -219,7 +227,10 @@ void glView::KeyReleasedMenu(int aKey) {
     case Qt::Key_Return: {
       mState = (eState)mCurrentMenu;
       if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
-      if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
+      if (mState == eState::TETRIS) {
+        controller.SetGame(eGame::TETRIS);
+        setFixedSize(w * 3 + tile_size, h);
+      }
       break;
     }
   }
@@ -227,6 +238,34 @@ void glView::KeyReleasedMenu(int aKey) {
 }
 
 void glView::KeyPressedSnake(int aKey) {
+  switch (aKey) {
+    case Qt::Key_Up: {
+      controller.HandleKey(aKey);
+      break;
+    }
+    case Qt::Key_Down: {
+      controller.HandleKey(aKey);
+      break;
+    }
+    case Qt::Key_Left: {
+      controller.HandleKey(aKey);
+      break;
+    }
+    case Qt::Key_Right: {
+      controller.HandleKey(aKey);
+      break;
+    }
+      // TODO:
+    case Qt::Key_Escape: {
+      controller.HandleKey(aKey);
+      prevState = mState;
+      mState = eState::PAUSE;
+      break;
+    }
+  }
+}
+
+void glView::KeyPressedTetris(int aKey) {
   switch (aKey) {
     case Qt::Key_Up: {
       controller.HandleKey(aKey);
@@ -308,6 +347,7 @@ void glView::keyPressEvent(QKeyEvent *apKeyEvent) {
     case eState::MENU:
       KeyReleasedMenu(apKeyEvent->key());
     case eState::TETRIS:
+      KeyPressedTetris(apKeyEvent->key());
       break;
     case eState::SNAKE:
       KeyPressedSnake(apKeyEvent->key());
@@ -403,14 +443,67 @@ void glView::DrawSnakeGame() {
 }
 
 void glView::DrawTetrisGame() {
+  int start = w;
   GameInfo gt = controller.GetData();
+  switch (gt.state) {
+    case eCommonTypesState::GAMEOVER: {
+      prevState = mState;
+      mState = eState::GAMEOVER;
+    }
+  }
+
   for (int i = 0; i < gt.height; i++) {
     for (int j = 0; j < gt.width; j++) {
       if (gt.grid[i][j] > 0) {
-        drawRectangle(j * tile_size, i * tile_size,
+        drawRectangle(j * tile_size + start, i * tile_size,
                       TetrisFiguresColors[(gt.grid[i][j] - 1) % 7]);
       }
     }
+  }
+
+  for (int i = 0; i < gt.height; i++) {
+    drawRectangle(start - tile_size, i * tile_size, Qt::black);
+    drawRectangle((start * 2), i * tile_size, Qt::black);
+  }
+
+  for (int i = 0; i < 7; i++) {
+    for (int j = 0; j < 4; j++) {
+      int k = i;
+      if (k == 6) {
+        k = 5;
+      } else if (k == 5) {
+        k = 6;  // yandex-style code | shout out kostik
+      }
+      drawRectangle(figures_stats_coords[i][j][1] * tile_size,
+                    figures_stats_coords[i][j][0] * tile_size,
+                    TetrisFiguresColors[k % 7]);
+    }
+  }
+
+  int bits = PREVIEW_MASKS[gt.next_fig];
+  int start_j = w * 2 + tile_size * 3;
+  int start_i = 2 * tile_size;
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 6; j++) {
+      if (bits & 1) {
+        drawRectangle(start_j + j * tile_size, start_i + i * tile_size,
+                      TetrisFiguresColors[gt.next_fig % 7]);
+      }
+      bits >>= 1;
+    }
+  }
+
+  start_j = w * 2 + tile_size * 2;
+  start_i = 2 * tile_size;
+
+  for (int i = 1; i < 4; i++) {
+    drawRectangle(start_j, i * tile_size, Qt::black);
+    drawRectangle(start_j + 7 * tile_size, i * tile_size, Qt::black);
+  }
+
+  for (int j = start_j / tile_size; j <= start_j / tile_size + 7; j++) {
+    drawRectangle(j * tile_size, 1 * tile_size, Qt::black);
+    drawRectangle(j * tile_size, 4 * tile_size, Qt::black);
   }
   update();
 }

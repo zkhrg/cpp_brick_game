@@ -14,7 +14,7 @@ class TetrisGame : public ArcadeGame {
 
   enum class eFigure { L, J, Z, S, T, I, O };
   enum class eGameState { START, PAUSE, GAMOVER, FINAL_STATE };
-  enum class eDirection { LEFT, RIGHT };
+  enum class eDirection { LEFT = -1, RIGHT = 1 };
 
   int tetramino_coords[4][2];
   int tetramino_corner[2];
@@ -64,7 +64,7 @@ class TetrisGame : public ArcadeGame {
   // the end of random sh1t
 
   /********************************* override ********/
-  void HandleKey(eKeys k) override {};
+  void HandleKey(eKeys k) override;
   GameInfo GetData() const override;
   void MakeTick() override;
   /***************************************************/

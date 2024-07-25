@@ -323,6 +323,35 @@ GameInfo TetrisGame::GetData() const {
   gi.height = field_height;
   gi.width = field_width;
   gi.state = (eCommonTypesState)game_state;
+  gi.next_fig = (int)next_figure;
   return gi;
+}
+
+void TetrisGame::HandleKey(eKeys k) {
+  switch (k) {
+    case eKeys::Key_Up: {
+      RotateFigure();
+      break;
+    }
+    case eKeys::Key_Down: {
+      game_last_tick_time = 0;
+      break;
+    }
+    case eKeys::Key_Left: {
+      MoveTetramino(eDirection::LEFT);
+      break;
+    }
+    case eKeys::Key_Right: {
+      MoveTetramino(eDirection::RIGHT);
+      break;
+    }
+    case eKeys::Key_ESC: {
+      TogglePause();
+      break;
+    }
+    default: {
+      break;
+    }
+  }
 }
 };  // namespace s21
