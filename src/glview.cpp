@@ -234,10 +234,12 @@ GameInfo glView::Processing() {
 
 void glView::DrawSnakeGame(GameInfo& gi) {
   int transitions[4] = {0, 2, 1, 3};
-  char s[128];
-  sprintf(s, "Snake Game | Points: %3d | Level: %3d", gi.points, gi.level);
+  std::ostringstream oss;
+  oss << "Snake Game | Points: " << std::setw(3) << gi.points
+      << " | Level: " << std::setw(3) << gi.level;
+  std::string title = oss.str();
 
-  setWindowTitle(s);
+  setWindowTitle(QString::fromStdString((title)));
   for (int i = 0; i < gi.height; i++) {
     for (int j = 0; j < gi.width; j++) {
       if (gi.grid[i][j] == 1) {
@@ -253,8 +255,9 @@ void glView::DrawSnakeGame(GameInfo& gi) {
 }
 
 void glView::DrawTetrisGame(GameInfo& gi) {
-  char s[128];
-  sprintf(s, "Tetris Game | Points: %3d | Level: %3d", gi.points, gi.level);
+  QString s = QString("Tetris Game | Points: %1 | Level: %2")
+                  .arg(gi.points, 3)
+                  .arg(gi.level, 3);
 
   setWindowTitle(s);
   setFixedSize(w * 3 + 1 * tile_size, h);

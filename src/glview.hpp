@@ -12,6 +12,7 @@
 #include <QPainter>
 #include <QTimer>
 #include <array>
+#include <sstream>
 
 #include "controller.h"
 #include "font_manager.h"
