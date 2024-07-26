@@ -1,4 +1,4 @@
-#include "glview.hpp"
+#include "main_view.h"
 
 /**************************************overrides***************************/
 
@@ -62,9 +62,13 @@ glView::glView() : timer(new QTimer(this)) {
   connect(timer, &QTimer::timeout, this, &glView::paintGL);
   timer->start(1000 / 60);
   setWindowTitle("brick game");
+  gi = {};
   w = 400;
   h = 800;
   tile_size = w / 10;
+  tiles_count_w = w / tile_size;
+  tiles_count_h = h / tile_size;
+  InitGridAccepter();
   setFixedSize(w, h);
 
   font_manager.loadFont("jetbrains_regular",
@@ -82,6 +86,13 @@ glView::glView() : timer(new QTimer(this)) {
   mvGameOverMenu.push_back({eGameOverMenu::GO_TO_MAIN_MENU, "Return to menu"});
 }
 
+glView::~glView() {
+  for (int i = 0; i < gi.height; i++) {
+    delete[] gi.grid[i];
+  }
+  delete[] gi.grid;
+}
+
 void glView::initializeGL() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -94,8 +105,8 @@ void glView::initializeGL() {
 void glView::paintGL() {
   glClearColor(0.0, 1.0, 1.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT);
-  GameInfo gi = Processing();
-  DrawUsingState(gi);
+  Processing();
+  DrawUsingState();
   update();
 }
 
@@ -164,16 +175,16 @@ void glView::drawRectangleSprite(int x1, int y1, const QString &texturename,
   texture->release();
 }
 
-void glView::DrawUsingState(GameInfo& gi) {
+void glView::DrawUsingState() {
   switch (mState) {
     case eState::MENU:
       DrawMenu();
       break;
     case eState::SNAKE:
-      DrawSnakeGame(gi);
+      DrawSnakeGame();
       break;
     case eState::TETRIS:
-      DrawTetrisGame(gi);
+      DrawTetrisGame();
       break;
     case eState::PAUSE:
       DrawPauseMenu();
@@ -219,20 +230,20 @@ void glView::DrawMenu() {
   }
 }
 
-GameInfo glView::Processing() {
-  GameInfo gi = controller.GetData();
+void glView::Processing() {
+  controller.GetData(gi);
   if (gi.state == eCommonTypesState::GAMEOVER) {
-    prevState = mState;
     controller.SetGame(eGame::NO_GAME);
+    gi.state = eCommonTypesState::GAMING;
+    prevState = mState;
     mState = eState::GAMEOVER;
   }
   if (mState == eState::EXIT) {
     close();
   }
-  return gi;
 }
 
-void glView::DrawSnakeGame(GameInfo& gi) {
+void glView::DrawSnakeGame() {
   int transitions[4] = {0, 2, 1, 3};
   std::ostringstream oss;
   oss << "Snake Game | Points: " << std::setw(3) << gi.points
@@ -254,7 +265,7 @@ void glView::DrawSnakeGame(GameInfo& gi) {
   }
 }
 
-void glView::DrawTetrisGame(GameInfo& gi) {
+void glView::DrawTetrisGame() {
   QString s = QString("Tetris Game | Points: %1 | Level: %2")
                   .arg(gi.points, 3)
                   .arg(gi.level, 3);
@@ -320,24 +331,24 @@ void glView::DrawTetrisGame(GameInfo& gi) {
 void glView::KeyPressedSnake(int aKey) {
   switch (aKey) {
     case Qt::Key_Up: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
     case Qt::Key_Down: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
     case Qt::Key_Left: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
     case Qt::Key_Right: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
       // TODO:
     case Qt::Key_Escape: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       prevState = mState;
       mState = eState::PAUSE;
       break;
@@ -348,25 +359,25 @@ void glView::KeyPressedSnake(int aKey) {
 void glView::KeyPressedTetris(int aKey) {
   switch (aKey) {
     case Qt::Key_Up: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
     case Qt::Key_Down: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
     case Qt::Key_Left: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
     case Qt::Key_Right: {
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       break;
     }
       // TODO:
     case Qt::Key_Escape: {
       setFixedSize(w, h);
-      controller.HandleKey(aKey);
+      controller.HandleKey(ConvertKey(aKey));
       prevState = mState;
       mState = eState::PAUSE;
       break;
@@ -388,7 +399,7 @@ void glView::KeyPressedPauseMenu(int aKey) {
     case Qt::Key_Return: {
       if (mCurrentPauseMenu == ePauseMenu::RESUME) {
         mState = prevState;
-        controller.HandleKey(Qt::Key_Escape);
+        controller.HandleKey(ConvertKey(Qt::Key_Escape));
       } else {
         controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
@@ -412,9 +423,14 @@ void glView::KeyPressedGameOverMenu(int aKey) {
     case Qt::Key_Return: {
       if (mCurrentGameOverMenu == eGameOverMenu::PLAY_AGAIN) {
         mState = prevState;
-        if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
+
+        if (mState == eState::SNAKE) {
+          controller.SetGame(eGame::SNAKE);
+          std::cout << "snake" << std::endl;
+        }
         if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
       } else {
+        std::cout << "asd2" << std::endl;
         controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
       }
@@ -501,7 +517,7 @@ void glView::DrawPauseMenu() {
 }
 
 void glView::DrawGameOverMenu() {
-  setWindowTitle("Brick Game | GameOver");
+  setWindowTitle("Brick Game | Game Over");
   setFixedSize(w, h);
 
   static auto app_w = w / 2.f;
@@ -532,5 +548,21 @@ void glView::DrawGameOverMenu() {
       painter.drawText(x, y, mvGameOverMenu[i].second.c_str());
     }
     y += dy;
+  }
+}
+
+ArcadeGame::eKeys glView::ConvertKey(int aKey) {
+  ArcadeGame::eKeys k = ArcadeGame::eKeys::Key_Space;
+  auto it = KeyMap.find((Qt::Key)aKey);
+  if (it != KeyMap.end()) {
+    k = it->second;
+  }
+  return k;
+}
+
+void glView::InitGridAccepter() {
+  gi.grid = new int*[tiles_count_h]();
+  for (int i = 0; i < tiles_count_h; ++i) {
+    gi.grid[i] = new int[tiles_count_w]();
   }
 }

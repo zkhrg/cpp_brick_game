@@ -1,6 +1,6 @@
 #include <QApplication>
 
-#include "glview.hpp"
+#include "views/main_view.h"
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);

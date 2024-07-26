@@ -224,12 +224,9 @@ bool SnakeGame::CheckStopCollision() {
 
 // для отдачи данных мне делаем их копию в кучу чтобы СЛУЧАЙНО не изменить
 // TODO: need to free
-GameInfo SnakeGame::GetData() const {
-  GameInfo gi{};
-  gi.grid = new int*[get_height()];
-  for (int i = 0; i < get_height(); ++i) {
-    gi.grid[i] = new int[get_width()];
-    for (int j = 0; j < get_width(); ++j) {
+void SnakeGame::GetData(GameInfo& gi) const {
+  for (int i = 0; i < get_height(); i++) {
+    for (int j = 0; j < get_width(); j++) {
       gi.grid[i][j] = field_grid_[i][j];
     }
   }
@@ -237,7 +234,6 @@ GameInfo SnakeGame::GetData() const {
   gi.width = get_width();
   gi.state = (eCommonTypesState)state;
   gi.points = snake_body.size() - 1;
-  return gi;
 }
 
 void SnakeGame::HandleKey(eKeys k) {

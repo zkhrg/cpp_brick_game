@@ -14,19 +14,19 @@
 #include <array>
 #include <sstream>
 
-#include "controller.h"
-#include "font_manager.h"
-#include "texture_manager.h"
+#include "../../../controller/controller.h"
+#include "../font_manager/font_manager.h"
+#include "../texture_manager/texture_manager.h"
 
 class glView : public QOpenGLWidget {
  public:
   glView();
+  ~glView();
 
   void initializeGL() override;
   void paintGL() override;
   void drawRectangle(int x1, int y1, QColor color);
   void resizeGL(int h, int w) override;
-  // void updateScene(GameInfo* gi);
   void DrawMenu();
   void KeyPressedMenu(int aKey);
   void KeyPressedSnake(int aKey);
@@ -35,17 +35,19 @@ class glView : public QOpenGLWidget {
   void KeyPressedPauseMenu(int aKey);
   void KeyPressedGameOverMenu(int aKey);
 
-  GameInfo Processing();
-  void DrawUsingState(GameInfo& gi);
+  void Processing();
+  void DrawUsingState();
 
-  void DrawSnakeGame(GameInfo& gi);
+  void DrawSnakeGame();
   void DrawGameOverMenu();
   void DrawPauseMenu();
-  void DrawTetrisGame(GameInfo& gi);
+  void DrawTetrisGame();
 
   void SendDataToController();
   void GetDataFromController();
+  void InitGridAccepter();
   void drawRectangleSprite(int x1, int y1, const QString& texturename, int dir);
+  ArcadeGame::eKeys ConvertKey(int aKey);
 
  public:
   enum class eState { TETRIS, SNAKE, EXIT, MENU, PAUSE, GAMEOVER };
@@ -61,6 +63,9 @@ class glView : public QOpenGLWidget {
   int w;
   int h;
   int tile_size;
+  int tiles_count_w;
+  int tiles_count_h;
+  GameInfo gi;
   std::vector<std::pair<eMenu, std::string>> mvMenu;
   std::vector<std::pair<ePauseMenu, std::string>> mvPauseMenu;
   std::vector<std::pair<eGameOverMenu, std::string>> mvGameOverMenu;
@@ -74,6 +79,13 @@ class glView : public QOpenGLWidget {
   QTimer* timer;
   TextureManager texture_manager;
   FontManager font_manager;
+
+  static inline std::unordered_map<Qt::Key, ArcadeGame::eKeys> KeyMap = {
+      {Qt::Key_Up, ArcadeGame::eKeys::Key_Up},
+      {Qt::Key_Down, ArcadeGame::eKeys::Key_Down},
+      {Qt::Key_Left, ArcadeGame::eKeys::Key_Left},
+      {Qt::Key_Right, ArcadeGame::eKeys::Key_Right},
+      {Qt::Key_Escape, ArcadeGame::eKeys::Key_ESC}};
 };
 
 #define XS 1

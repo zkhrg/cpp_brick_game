@@ -5,12 +5,13 @@
 
 #include <random>
 
-#include "arcade_game_base.h"
+#include "../common/arcade_game_base.h"
 
 namespace s21 {
 class TetrisGame : public ArcadeGame {
  public:
   TetrisGame();
+  ~TetrisGame();
 
   enum class eFigure { L, J, Z, S, T, I, O };
   enum class eGameState { START, PAUSE, GAMOVER, FINAL_STATE };
@@ -64,7 +65,7 @@ class TetrisGame : public ArcadeGame {
 
   /********************************* override ********/
   void HandleKey(eKeys k) override;
-  GameInfo GetData() const override;
+  void GetData(GameInfo& gi) const override;
   void MakeTick() override;
   /***************************************************/
 
@@ -84,7 +85,7 @@ class TetrisGame : public ArcadeGame {
   int GetFigureBoxSize(eFigure fig);
   bool CanFigureRotate(eFigure fig);
   void RotateFigure();
-  void ApplySignal();
+
   bool IsTimeToTick();
 
   long long GetTimeMs();

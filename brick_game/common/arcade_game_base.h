@@ -18,7 +18,7 @@ class ArcadeGame {
  public:
   virtual ~ArcadeGame() = default;
   virtual void HandleKey(eKeys k) = 0;
-  virtual GameInfo GetData() const = 0;
+  virtual void GetData(GameInfo &gi) const = 0;
   virtual void MakeTick() = 0;
 };
 

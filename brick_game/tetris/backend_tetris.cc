@@ -21,6 +21,8 @@ TetrisGame::TetrisGame() : game_last_tick_time(0), level(0), gen_(rd_()) {
   figures_stats[(int)cur_figure]++;
 }
 
+TetrisGame::~TetrisGame() { delete[] field_grid; }
+
 void TetrisGame::InitTetramino() {
   for (int i = 0; i < 8; i++) {
     tetramino_coords[i / 2][i % 2] =
@@ -234,16 +236,6 @@ void TetrisGame::TogglePause() {
       (game_state == eGameState::PAUSE) ? eGameState::START : eGameState::PAUSE;
 }
 
-// apply signal to state
-void TetrisGame::ApplySignal() {
-  // if (sig == Pause) toggle_pause(tp);
-  // if (sig == Terminate) tp->game_state = final_state;
-  // if (sig == Left) move_tetramino(tp, left_direction);
-  // if (sig == Right) move_tetramino(tp, right_direction);
-  // if (sig == Up) rotate_figure(tp);
-  // if (sig == Down) tp->game_last_tick_time = 0;
-}
-
 bool TetrisGame::IsTimeToTick() {
   bool res = false;
   long long cur_time = GetTimeMs();
@@ -310,11 +302,8 @@ bool TetrisGame::CanAddTetramino() {
   return res;
 }
 
-GameInfo TetrisGame::GetData() const {
-  GameInfo gi{};
-  gi.grid = new int*[field_height];
+void TetrisGame::GetData(GameInfo& gi) const {
   for (int i = 0; i < field_height; ++i) {
-    gi.grid[i] = new int[field_width];
     for (int j = 0; j < field_width; ++j) {
       gi.grid[i][j] = field_grid[i * field_width + j];
     }
@@ -325,7 +314,6 @@ GameInfo TetrisGame::GetData() const {
   gi.next_fig = (int)next_figure;
   gi.points = game_points;
   gi.level = game_speed;
-  return gi;
 }
 
 void TetrisGame::HandleKey(eKeys k) {

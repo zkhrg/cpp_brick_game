@@ -8,8 +8,7 @@
 #include <random>
 #include <unordered_map>
 
-#include "arcade_game_base.h"
-#include "common_types.h"
+#include "../common/arcade_game_base.h"
 
 namespace s21 {
 class SnakeGame : public ArcadeGame {
@@ -62,7 +61,7 @@ class SnakeGame : public ArcadeGame {
  public:
   /* ======================================= overrided =========== */
   void MakeTick() override;
-  GameInfo GetData() const override;
+  void GetData(GameInfo& gi) const override;
   void HandleKey(eKeys k) override;
   /* ============================================================= */
 
