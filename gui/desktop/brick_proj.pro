@@ -16,7 +16,8 @@ SOURCES += \
     $${PREFIX}gui/desktop/main.cc \
     $${PREFIX}gui/desktop/font_manager/font_manager.cc \
     $${PREFIX}gui/desktop/texture_manager/texture_manager.cc \
-    $${PREFIX}brick_game/tetris/backend_tetris.cc
+    $${PREFIX}brick_game/tetris/backend_tetris.cc \
+    $${PREFIX}gui/cli/views/main_view.cc
 
 HEADERS += \
     $${PREFIX}brick_game/common/arcade_game_base.h \
@@ -27,6 +28,7 @@ HEADERS += \
     $${PREFIX}gui/desktop/font_manager/font_manager.h \
     $${PREFIX}gui/desktop/texture_manager/texture_manager.h \
     $${PREFIX}brick_game/tetris/backend_tetris.h \
+    $${PREFIX}gui/cli/views/main_view.h
 
 FORMS +=
 
