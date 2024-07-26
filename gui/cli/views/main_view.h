@@ -11,7 +11,7 @@ class cliView {
 
   void DrawOverlay();
   void PrintRectangle(int x1, int y1, int x2, int y2);
-  void render_next_figure_preview(int fig);
+  void RenderNextFigurePreview(int fig);
   void render_field();
   void render_points();
   void render_highscore();
@@ -40,8 +40,8 @@ class cliView {
       {27, ArcadeGame::eKeys::Key_ESC}};  // esc
 
   enum class Colors { YELLOW = 8, BLUE, RED, PINK, VIOLET, ORANGE, BROWN };
-
-  static inline const std::array<int, 7> preview_masks = {
+  static const int tetris_figures_count = 7;
+  static inline const std::array<int, tetris_figures_count> preview_masks = {
       0b000100011100, 0b010000011100, 0b011000001100, 0b001100011000,
       0b001000011100, 0b011110000000, 0b001100001100};
 

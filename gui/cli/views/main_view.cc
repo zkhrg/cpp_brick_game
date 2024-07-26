@@ -96,13 +96,42 @@ void cliView::RenderNextFigurePreview(int fig) {
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 6; j++) {
       if (bits & 1) {
-        for (int x = j * kMult; x < j * MULT + (1 * MULT); x++) {
-          mvwaddch(np, i, x,
-                   EMPTY_BLOCK | COLOR_PAIR((fig % FIGURES_COUNT) + 1));
+        for (int x = j * kMult; x < j * kMult + (1 * kMult); x++) {
+          mvwaddch(preview_next_figure_w, i, x,
+                   full_block | COLOR_PAIR((fig % tetris_figures_count) + 1));
         }
       }
       bits >>= 1;
     }
   }
-  wrefresh(np);
+  wrefresh(preview_next_figure_w);
+}
+
+void cliView::RenderField() {
+  if (tp->game_state == pause_state) {
+    RenderPause();
+    return;
+  } else if (tp->game_state == gameover_state) {
+    RenderGameOver();
+    return;
+  }
+
+  wclear(main_w);
+  for (int i = 0; i < tp->field_height; i++) {
+    for (int j = 0; j < tp->field_width; j++) {
+      if ((tp->field_grid[i * tp->field_width + j] > 0)) {
+        for (int x = j * MULT; x < j * MULT + (1 * MULT); x++) {
+          mvwaddch(s, i, x,
+                   EMPTY_BLOCK |
+                       COLOR_PAIR(((tp->field_grid[i * tp->field_width + j] -
+                                    TETRAMINO_TILE) %
+                                   FIGURES_COUNT) +
+                                  TETRAMINO_TILE));
+        }
+      }
+    }
+  }
+
+  tp->render_ready = 0;
+  wrefresh(main_w);
 }
