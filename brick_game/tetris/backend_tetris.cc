@@ -314,6 +314,9 @@ void TetrisGame::GetData(GameInfo& gi) const {
   gi.next_fig = (int)next_figure;
   gi.points = game_points;
   gi.level = game_speed;
+  for (int i = 0; i < 7; i++) {
+    gi.figures_stats[i] = figures_stats[i];
+  }
 }
 
 void TetrisGame::HandleKey(eKeys k) {

@@ -17,12 +17,26 @@ class cliView {
   void render_highscore();
   void render_level();
   // UserAction_t parse_signal();
-  void render_stats();
-  void init_game_windows();
-  void render_stats_values();
-  void render_pause();
-  void render_gameover();
-  void render_values();
+  enum class eState { MENU, SNAKE, TETRIS, PAUSE, GAMEOVER, EXIT };
+  void RenderStats();
+  void RenderStatsValues();
+  void RenderPause();
+  void RenderGameOver();
+  void RenderValues();
+  void DrawUsingState();
+  void DrawMenu();
+  void ApplyKeyUsingState(int key);
+
+  void KeyPressedMenu(int key);
+  void KeyPressedTetris(int key);
+  void KeyPressedSnake(int key);
+  void KeyPressedPauseMenu(int key);
+  void KeyPressedGameOverMenu(int key);
+
+  void DrawSnakeGame();
+  void DrawTetrisGame();
+  void DrawPauseMenu();
+  void DrawGameOverMenu();
 
   const static int kMult;
 
@@ -49,6 +63,20 @@ class cliView {
 
   int tiles_count_h;
   int tiles_count_w;
+  eState mState;
+  eState prevState;
+
+  enum class eMenu { TETRIS, SNAKE, EXIT };
+  enum class ePauseMenu { RESUME, GO_TO_MAIN_MENU };
+  enum class eGameOverMenu { PLAY_AGAIN, GO_TO_MAIN_MENU };
+
+  std::vector<std::pair<eMenu, std::string>> mvMenu;
+  std::vector<std::pair<ePauseMenu, std::string>> mvPauseMenu;
+  std::vector<std::pair<eGameOverMenu, std::string>> mvGameOverMenu;
+
+  eMenu mCurrentMenu{eMenu::TETRIS};
+  ePauseMenu mCurrentPauseMenu{ePauseMenu::RESUME};
+  eGameOverMenu mCurrentGameOverMenu{eGameOverMenu::PLAY_AGAIN};
 
   WINDOW* main_w;
   WINDOW* preview_next_figure_w;
@@ -56,6 +84,8 @@ class cliView {
   WINDOW* highscore_w;
   WINDOW* level_w;
   WINDOW* figures_stats_w;
+
+  Controller controller;
 };
 
 #define XS 1
