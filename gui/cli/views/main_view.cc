@@ -59,6 +59,38 @@ cliView::eGameOverMenu operator--(cliView::eGameOverMenu& aGameOverMenu) {
 /**************************************************************************/
 
 cliView::cliView() {
+  InitNcurses();
+  InitAllMenu();
+  InitNcursesWindows();
+  controller = {};
+  gi = {};
+  tiles_count_h = 20;
+  tiles_count_w = 10;
+  InitGridAccepter();
+}
+
+void cliView::InitNcursesWindows() {
+  main_w = subwin(stdscr, 20, 10 * kMult, 1, 12 * kMult);
+  preview_next_figure_w = subwin(stdscr, 2, 6 * kMult, 3, 25 * kMult);
+  score_w = subwin(stdscr, 2, 6 * kMult, 7, 25 * kMult);
+  highscore_w = subwin(stdscr, 2, 6 * kMult, 10, 25 * kMult);
+  level_w = subwin(stdscr, 2, 6 * kMult, 13, 25 * kMult);
+  figures_stats_w = subwin(stdscr, 20, 10 * kMult, 1, 1 * kMult);
+}
+
+void cliView::InitAllMenu() {
+  mvMenu.push_back({eMenu::TETRIS, "Tetris"});
+  mvMenu.push_back({eMenu::SNAKE, "Snake"});
+  mvMenu.push_back({eMenu::EXIT, "Exit"});
+
+  mvPauseMenu.push_back({ePauseMenu::RESUME, "Resume"});
+  mvPauseMenu.push_back({ePauseMenu::GO_TO_MAIN_MENU, "Menu"});
+
+  mvGameOverMenu.push_back({eGameOverMenu::PLAY_AGAIN, "Retry"});
+  mvGameOverMenu.push_back({eGameOverMenu::GO_TO_MAIN_MENU, "Menu"});
+}
+
+void cliView::InitNcurses() {
   initscr();
   noecho();
   curs_set(0);
@@ -85,35 +117,7 @@ cliView::cliView() {
   init_pair(7, COLOR_WHITE, (int)Colors::BROWN);
   init_pair(8, COLOR_WHITE, COLOR_WHITE); /*bordercolor*/
   init_pair(9, COLOR_BLACK, COLOR_WHITE); /*textinborder*/
-
-  InitNcurses();
-  mState = eState::MENU;
-
-  mvMenu.push_back({eMenu::TETRIS, "Tetris"});
-  mvMenu.push_back({eMenu::SNAKE, "Snake"});
-  mvMenu.push_back({eMenu::EXIT, "Exit"});
-
-  mvPauseMenu.push_back({ePauseMenu::RESUME, "Resume"});
-  mvPauseMenu.push_back({ePauseMenu::GO_TO_MAIN_MENU, "Menu"});
-
-  mvGameOverMenu.push_back({eGameOverMenu::PLAY_AGAIN, "Retry"});
-  mvGameOverMenu.push_back({eGameOverMenu::GO_TO_MAIN_MENU, "Menu"});
-
-  controller = {};
-
-  main_w = subwin(stdscr, 20, 10 * kMult, 1, 12 * kMult);
-  preview_next_figure_w = subwin(stdscr, 2, 6 * kMult, 3, 25 * kMult);
-  score_w = subwin(stdscr, 2, 6 * kMult, 7, 25 * kMult);
-  highscore_w = subwin(stdscr, 2, 6 * kMult, 10, 25 * kMult);
-  level_w = subwin(stdscr, 2, 6 * kMult, 13, 25 * kMult);
-  figures_stats_w = subwin(stdscr, 20, 10 * kMult, 1, 1 * kMult);
-  gi = {};
-  tiles_count_h = 20;
-  tiles_count_w = 10;
-  InitGridAccepter();
 }
-
-void cliView::InitNcurses() {}
 
 void cliView::InitGridAccepter() {
   gi.grid = new int*[tiles_count_h]();

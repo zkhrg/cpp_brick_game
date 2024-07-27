@@ -40,15 +40,17 @@ class cliView {
   void DrawPauseMenu();
   void DrawGameOverMenu();
 
-  bool render_menu_ready;
-  bool render_pause_menu_ready;
-  bool render_gameover_menu_ready;
-  bool tetris_stats_render_ready;
-  bool overlay_render_ready;
+  bool render_menu_ready = true;
+  bool render_pause_menu_ready = true;
+  bool render_gameover_menu_ready = true;
+  bool tetris_stats_render_ready = true;
+  bool overlay_render_ready = true;
 
   const static int kMult = 2;
 
   void InitGridAccepter();
+  void InitAllMenu();
+  void InitNcursesWindows();
 
   ArcadeGame::eKeys ConvertKey(int aKey);
 
@@ -71,7 +73,7 @@ class cliView {
 
   int tiles_count_h;
   int tiles_count_w;
-  eState mState;
+  eState mState = eState::MENU;
   eState prevState;
 
   enum class eMenu { TETRIS, SNAKE, EXIT };

@@ -27,12 +27,11 @@ int main(void) {
   setlocale(LC_ALL, "");
   cliView v;
   int k;
-  while ((k = getch()) != 'q') {
-    v.ApplyKeyUsingState(k);
+  while (v.mState != cliView::eState::EXIT) {
+    v.ApplyKeyUsingState(getch());
     v.Processing();
     v.DrawUsingState();
   }
-  getchar();
   endwin();
   return 0;
 }
