@@ -95,6 +95,7 @@ void cliView::InitNcurses() {
   noecho();
   curs_set(0);
   keypad(stdscr, TRUE);
+  set_escdelay(25);
   timeout(30);
   if (has_colors() == FALSE || can_change_color() == FALSE) {
     endwin();
@@ -169,10 +170,6 @@ ArcadeGame::eKeys cliView::ConvertKey(int aKey) {
   }
   return k;
 }
-
-// TODO PAUSE MENU
-// TODO GAME OVER MENU
-// TODO APPLY CONTROLLER
 
 void cliView::RenderNextFigurePreview(int fig) {
   int bits = preview_masks[fig];
@@ -279,19 +276,6 @@ void cliView::RenderStatsValues() {
   wrefresh(figures_stats_w);
 }
 
-void cliView::RenderPause() {
-  wclear(main_w);
-  mvwaddstr(main_w, 9, 2 * kMult * kMult, "pause");
-  wrefresh(main_w);
-}
-
-void cliView::RenderGameOver() {
-  wclear(main_w);
-  mvwaddstr(main_w, 9, 1 * kMult * kMult, "the end!");
-  mvwaddstr(main_w, 10, 1 * kMult * kMult, "esc quit");
-  wrefresh(main_w);
-}
-
 void cliView::RenderValues() {
   if (gi.state != eCommonTypesState::PAUSE) {
     RenderPoints();
@@ -365,6 +349,7 @@ void cliView::ApplyKeyUsingState(int key) {
   switch (mState) {
     case eState::MENU:
       KeyPressedMenu(key);
+      break;
     case eState::TETRIS:
       KeyPressedTetris(key);
       break;
@@ -394,7 +379,6 @@ void cliView::KeyPressedMenu(int key) {
       render_menu_ready = true;
       break;
     }
-    // case KEY_ENTER:
     case '\n': {
       switch (mCurrentMenu) {
         case eMenu::SNAKE:
@@ -402,6 +386,8 @@ void cliView::KeyPressedMenu(int key) {
           controller.SetGame(eGame::SNAKE);
           break;
         case eMenu::TETRIS:
+          tetris_stats_render_ready = true;
+          overlay_render_ready = true;
           mState = eState::TETRIS;
           controller.SetGame(eGame::TETRIS);
           break;
@@ -463,6 +449,7 @@ void cliView::KeyPressedSnake(int key) {
       break;
     }
     case 27: {
+      render_pause_menu_ready = true;
       controller.HandleKey(ConvertKey(key));
       prevState = mState;
       mState = eState::PAUSE;
@@ -483,11 +470,14 @@ void cliView::KeyPressedPauseMenu(int key) {
       render_pause_menu_ready = true;
       break;
     }
-    case KEY_ENTER: {
+    case '\n': {
       if (mCurrentPauseMenu == ePauseMenu::RESUME) {
+        tetris_stats_render_ready = true;
+        overlay_render_ready = true;
         mState = prevState;
         controller.HandleKey(ConvertKey(27));
       } else {
+        render_menu_ready = true;
         controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
       }
@@ -506,12 +496,15 @@ void cliView::KeyPressedGameOverMenu(int key) {
       ++mCurrentGameOverMenu;
       break;
     }
-    case KEY_ENTER: {
+    case '\n': {
       if (mCurrentGameOverMenu == eGameOverMenu::PLAY_AGAIN) {
         mState = prevState;
+        tetris_stats_render_ready = true;
+        overlay_render_ready = true;
         if (mState == eState::SNAKE) controller.SetGame(eGame::SNAKE);
         if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
       } else {
+        render_menu_ready = true;
         controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
       }
@@ -521,7 +514,6 @@ void cliView::KeyPressedGameOverMenu(int key) {
 }
 
 void cliView::DrawSnakeGame() {
-  // ();
   wclear(main_w);
   for (int i = 0; i < gi.height; i++) {
     for (int j = 0; j < gi.width; j++) {
@@ -542,18 +534,14 @@ void cliView::DrawSnakeGame() {
       }
     }
   }
+  RenderValues();
   refresh();
   wrefresh(main_w);
 }
 void cliView::DrawTetrisGame() {
   DrawOverlay();
   RenderStats();
-  if (gi.values_render_ready) {
-    RenderPoints();
-    RenderHighscore();
-    RenderLevel();
-    gi.values_render_ready = false;
-  }
+  RenderValues();
   if (gi.stats_render_ready) {
     RenderStatsValues();
     RenderNextFigurePreview(gi.next_fig);

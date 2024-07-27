@@ -10,15 +10,19 @@ SnakeGame::SnakeGame()
       gen_(rd_()),
       distrib_(0, 20 * 10 - 1) {
   ;
+  game_highscore = 0;
+  ReadHighscore();
   state = eState::GAMING;
   ready_change_dir = true;
   snake_body.push_back({9, 4});
+  points = 0;
+  game_highscore = 0;
+  level = 0;
   CreateField();
   AddSnakeToField();
   GenerateAppleIndex();
   AddFoodToField();
 }
-SnakeGame::SnakeGame(int h, int w) {}
 SnakeGame::~SnakeGame() { FreeField(); }
 
 void SnakeGame::CreateField() {
@@ -75,7 +79,6 @@ void SnakeGame::GenerateAppleIndex() {
   if (v != -1) {
     food_ind = {v / get_width(), v % get_width()};
   }
-  // можно зарейзить исключение и потом его поймать
 }
 
 int SnakeGame::get_height() const { return height_; }
@@ -84,7 +87,7 @@ int SnakeGame::get_width() const { return width_; }
 bool SnakeGame::isTimeToTick() {
   bool res = false;
   long long cur_time = GetTimeMs();
-  if (cur_time - last_tick_time > times[level]) {
+  if (cur_time - last_tick_time > times[(points / 10) % 10]) {
     res = (state == eState::GAMING) ? true : false;
     last_tick_time = cur_time;
     ready_change_dir = true;
@@ -174,6 +177,11 @@ void SnakeGame::GrowSnake() {
   new_head.first += m[dir].first;
   new_head.second += m[dir].second;
   snake_body.push_front(new_head);
+  points++;
+  if (points > game_highscore) {
+    game_highscore = points;
+    WriteHighscore();
+  }
 }
 /**
  * @brief Устанавливает направление движения змейки c проверкой условия что это
@@ -233,7 +241,9 @@ void SnakeGame::GetData(GameInfo& gi) const {
   gi.height = get_height();
   gi.width = get_width();
   gi.state = (eCommonTypesState)state;
-  gi.points = snake_body.size() - 1;
+  gi.points = points;
+  gi.highscore = game_highscore;
+  gi.level = points / 10;
 }
 
 void SnakeGame::HandleKey(eKeys k) {
@@ -274,4 +284,19 @@ void SnakeGame::SetState(eState s) {
   }
 }
 SnakeGame::eState SnakeGame::GetState() { return state; }
+
+void SnakeGame::ReadHighscore() {
+  FILE* f = fopen("highscore_snake", "rb");
+  if (f) {
+    fread(&(game_highscore), sizeof(int), 1, f);
+    fclose(f);
+  }
+}
+void SnakeGame::WriteHighscore() {
+  FILE* f = fopen("highscore_snake", "wb");
+  if (f) {
+    fwrite(&(game_highscore), sizeof(int), 1, f);
+    fclose(f);
+  }
+}
 }  // namespace s21

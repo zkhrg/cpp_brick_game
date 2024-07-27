@@ -95,5 +95,5 @@ class TetrisGame : public ArcadeGame {
   bool CanAddTetramino();
   void TogglePause();
 };
-};  // namespace s21
+};      // namespace s21
 #endif  // BACKEND_TETRIS_H

@@ -99,10 +99,10 @@ bool TetrisGame::CanTetraminoMove(eDirection d) {
   bool res = (game_state == eGameState::START) ? true : false;
   int wall = (d == eDirection::LEFT) ? 0 : field_width - 1;
   for (int i = 0; i < 4; i++) {
-    res *= (tetramino_coords[i][1] != wall &&
-            field_grid[tetramino_coords[i][0] * field_width +
-                       tetramino_coords[i][1] + (int)d] <
-                figures_count + tetramino_tile);
+    res = res && (tetramino_coords[i][1] != wall &&
+                  field_grid[tetramino_coords[i][0] * field_width +
+                             tetramino_coords[i][1] + (int)d] <
+                      figures_count + tetramino_tile);
   }
   return res;
 }
@@ -185,8 +185,8 @@ bool TetrisGame::CanFigureRotate(eFigure fig) {
       tetramino_corner[0] >= 0 && tetramino_corner[1] >= 0) {
     for (int i = tetramino_corner[0]; i < tetramino_corner[0] + size; i++) {
       for (int j = tetramino_corner[1]; j < tetramino_corner[1] + size; j++) {
-        res *=
-            (field_grid[i * field_width + j] < figures_count + tetramino_tile);
+        res = res && (field_grid[i * field_width + j] <
+                      figures_count + tetramino_tile);
       }
     }
   } else {
@@ -296,8 +296,8 @@ void TetrisGame::WriteHighscore() {
 bool TetrisGame::CanAddTetramino() {
   bool res = true;
   for (int i = 0; i < 4; i++) {
-    res *= field_grid[tetramino_coords[i][0] * field_width +
-                      tetramino_coords[i][1]] == empty_tile;
+    res = res && field_grid[tetramino_coords[i][0] * field_width +
+                            tetramino_coords[i][1]] == empty_tile;
   }
   return res;
 }

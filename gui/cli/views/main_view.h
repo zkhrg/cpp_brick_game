@@ -22,8 +22,6 @@ class cliView {
   enum class eState { MENU, SNAKE, TETRIS, PAUSE, GAMEOVER, EXIT };
   void RenderStats();
   void RenderStatsValues();
-  void RenderPause();
-  void RenderGameOver();
   void RenderValues();
   void DrawUsingState();
   void DrawMenu();

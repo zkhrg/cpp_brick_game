@@ -22,17 +22,17 @@ class SnakeGame : public ArcadeGame {
 
  public:
   SnakeGame();
-  SnakeGame(int h, int w);
   ~SnakeGame();
 
  public:
-  static inline std::array<int, 10> times = {100, 690, 580, 470, 360,
-                                             250, 140, 100, 70,  45};
+  static inline std::array<int, 10> times = {180, 170, 160, 150, 140,
+                                             130, 120, 110, 100, 90};
   int** field_grid_;
   int height_;
   int width_;
   int level;
   long long last_tick_time;
+  int points;
   std::pair<int, int> food_ind;
   Direction dir;
   std::list<std::pair<int, int>>
@@ -74,6 +74,10 @@ class SnakeGame : public ArcadeGame {
   eState GetState();
   eState state;
   bool ready_change_dir;
+
+  void ReadHighscore();
+  void WriteHighscore();
+  int game_highscore;
 };
 
 }  // namespace s21

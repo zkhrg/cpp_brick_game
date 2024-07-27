@@ -247,7 +247,8 @@ void glView::DrawSnakeGame() {
   int transitions[4] = {0, 2, 1, 3};
   std::ostringstream oss;
   oss << "Snake Game | Points: " << std::setw(3) << gi.points
-      << " | Level: " << std::setw(3) << gi.level;
+      << " | Level: " << std::setw(3) << gi.level
+      << " | Highscore: " << std::setw(3) << gi.highscore;
   std::string title = oss.str();
 
   setWindowTitle(QString::fromStdString((title)));
@@ -287,20 +288,20 @@ void glView::DrawTetrisGame() {
     drawRectangle(start - tile_size, i * tile_size, Qt::black);
     drawRectangle((start * 2), i * tile_size, Qt::black);
   }
-
-  for (int i = 0; i < 7; i++) {
-    for (int j = 0; j < 4; j++) {
-      int k = i;
-      if (k == 6) {
-        k = 5;
-      } else if (k == 5) {
-        k = 6;  // yandex-style code | shout out kostik
-      }
-      drawRectangle(figures_stats_coords[i][j][1] * tile_size,
-                    figures_stats_coords[i][j][0] * tile_size,
-                    TetrisFiguresColors[k % 7]);
-    }
-  }
+  // ya ne uspevayu sdelat' tut otobrazhenie счета
+  // for (int i = 0; i < 7; i++) {
+  //   for (int j = 0; j < 4; j++) {
+  //     int k = i;
+  //     if (k == 6) {
+  //       k = 5;
+  //     } else if (k == 5) {
+  //       k = 6;  // yandex-style code | shout out kostik
+  //     }
+  //     drawRectangle(figures_stats_coords[i][j][1] * tile_size,
+  //                   figures_stats_coords[i][j][0] * tile_size,
+  //                   TetrisFiguresColors[k % 7]);
+  //   }
+  // }
 
   int bits = PREVIEW_MASKS[gi.next_fig];
   int start_j = w * 2 + tile_size * 3;
@@ -426,11 +427,9 @@ void glView::KeyPressedGameOverMenu(int aKey) {
 
         if (mState == eState::SNAKE) {
           controller.SetGame(eGame::SNAKE);
-          std::cout << "snake" << std::endl;
         }
         if (mState == eState::TETRIS) controller.SetGame(eGame::TETRIS);
       } else {
-        std::cout << "asd2" << std::endl;
         controller.SetGame(eGame::NO_GAME);
         mState = eState::MENU;
       }
