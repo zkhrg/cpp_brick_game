@@ -13,6 +13,10 @@ struct GameInfo {
   int level;
   int points;
   int record;
+  int render_ready;
+  int stats_render_ready;
+  int values_render_ready;
+  int highscore;
   eCommonTypesState state;
 };
 

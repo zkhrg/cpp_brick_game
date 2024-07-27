@@ -7,15 +7,15 @@
 class cliView {
  public:
   cliView();
-  ~cliView();
+  //   ~cliView();
 
   void DrawOverlay();
   void PrintRectangle(int x1, int y1, int x2, int y2);
   void RenderNextFigurePreview(int fig);
-  void render_field();
-  void render_points();
-  void render_highscore();
-  void render_level();
+  void RenderField();
+  void RenderPoints();
+  void RenderHighscore();
+  void RenderLevel();
   // UserAction_t parse_signal();
   enum class eState { MENU, SNAKE, TETRIS, PAUSE, GAMEOVER, EXIT };
   void RenderStats();
@@ -38,7 +38,7 @@ class cliView {
   void DrawPauseMenu();
   void DrawGameOverMenu();
 
-  const static int kMult;
+  const static int kMult = 2;
 
   void InitGridAccepter();
 

@@ -139,6 +139,7 @@ void cliView::PrintRectangle(int x1, int y1, int x2, int y2) {
     mvaddch(top_y, i, full_block | COLOR_PAIR(8));
     mvaddch(bottom_y, i, full_block | COLOR_PAIR(8));
   }
+  refresh();
 }
 
 void cliView::DrawOverlay() {
@@ -161,6 +162,10 @@ ArcadeGame::eKeys cliView::ConvertKey(int aKey) {
   return k;
 }
 
+// TODO PAUSE MENU
+// TODO GAME OVER MENU
+// TODO APPLY CONTROLLER
+
 void cliView::RenderNextFigurePreview(int fig) {
   int bits = preview_masks[fig];
 
@@ -181,31 +186,29 @@ void cliView::RenderNextFigurePreview(int fig) {
 }
 
 void cliView::RenderField() {
-  if (tp->game_state == pause_state) {
+  if (gi.state == eCommonTypesState::PAUSE) {
     RenderPause();
     return;
-  } else if (tp->game_state == gameover_state) {
+  } else if (gi.state == eCommonTypesState::PAUSE) {
     RenderGameOver();
     return;
   }
 
   wclear(main_w);
-  for (int i = 0; i < tp->field_height; i++) {
-    for (int j = 0; j < tp->field_width; j++) {
-      if ((tp->field_grid[i * tp->field_width + j] > 0)) {
-        for (int x = j * MULT; x < j * MULT + (1 * MULT); x++) {
-          mvwaddch(s, i, x,
-                   EMPTY_BLOCK |
-                       COLOR_PAIR(((tp->field_grid[i * tp->field_width + j] -
-                                    TETRAMINO_TILE) %
-                                   FIGURES_COUNT) +
-                                  TETRAMINO_TILE));
+  for (int i = 0; i < gi.height; i++) {
+    for (int j = 0; j < gi.width; j++) {
+      if ((gi.grid[i][j] > 0)) {
+        for (int x = j * kMult; x < j * kMult + (1 * kMult); x++) {
+          mvwaddch(
+              main_w, i, x,
+              full_block |
+                  COLOR_PAIR(((gi.grid[i][j] - 1) % tetris_figures_count) + 1));
         }
       }
     }
   }
 
-  tp->render_ready = 0;
+  gi.render_ready = 0;
   wrefresh(main_w);
 }
 
