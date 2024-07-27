@@ -317,6 +317,9 @@ void TetrisGame::GetData(GameInfo& gi) const {
   for (int i = 0; i < 7; i++) {
     gi.figures_stats[i] = figures_stats[i];
   }
+  gi.render_ready = render_ready;
+  gi.stats_render_ready = stats_render_ready;
+  gi.values_render_ready = values_render_ready;
 }
 
 void TetrisGame::HandleKey(eKeys k) {

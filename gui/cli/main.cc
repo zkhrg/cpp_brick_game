@@ -28,8 +28,9 @@ int main(void) {
   cliView v;
   int k;
   while ((k = getch()) != 'q') {
-    v.DrawUsingState();
     v.ApplyKeyUsingState(k);
+    v.Processing();
+    v.DrawUsingState();
   }
   getchar();
   endwin();

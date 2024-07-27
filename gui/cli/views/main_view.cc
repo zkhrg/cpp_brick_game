@@ -85,8 +85,8 @@ cliView::cliView() {
   init_pair(7, COLOR_WHITE, (int)Colors::BROWN);
   init_pair(8, COLOR_WHITE, COLOR_WHITE); /*bordercolor*/
   init_pair(9, COLOR_BLACK, COLOR_WHITE); /*textinborder*/
-  // init_pair(10, COLOR_WHITE, COLOR_BLACK);
 
+  InitNcurses();
   mState = eState::MENU;
 
   mvMenu.push_back({eMenu::TETRIS, "Tetris"});
@@ -112,6 +112,8 @@ cliView::cliView() {
   tiles_count_w = 10;
   InitGridAccepter();
 }
+
+void cliView::InitNcurses() {}
 
 void cliView::InitGridAccepter() {
   gi.grid = new int*[tiles_count_h]();
@@ -143,6 +145,7 @@ void cliView::PrintRectangle(int x1, int y1, int x2, int y2) {
 }
 
 void cliView::DrawOverlay() {
+  if (!overlay_render_ready) return;
   PrintRectangle(0 * kMult, 0, 11 * kMult, 21);   // stats
   PrintRectangle(11 * kMult, 0, 22 * kMult, 21);  // main
   PrintRectangle(22 * kMult, 0, 33 * kMult, 21);  // left
@@ -151,6 +154,7 @@ void cliView::DrawOverlay() {
   mvwaddstr(stdscr, 0, 1 * kMult, "statistics");
   mvwaddstr(stdscr, 2, 25 * kMult, "next");
   wattr_off(stdscr, COLOR_PAIR(9), NULL);
+  overlay_render_ready = false;
 }
 
 ArcadeGame::eKeys cliView::ConvertKey(int aKey) {
@@ -186,14 +190,7 @@ void cliView::RenderNextFigurePreview(int fig) {
 }
 
 void cliView::RenderField() {
-  if (gi.state == eCommonTypesState::PAUSE) {
-    RenderPause();
-    return;
-  } else if (gi.state == eCommonTypesState::PAUSE) {
-    RenderGameOver();
-    return;
-  }
-
+  if (!gi.render_ready) return;
   wclear(main_w);
   for (int i = 0; i < gi.height; i++) {
     for (int j = 0; j < gi.width; j++) {
@@ -208,7 +205,7 @@ void cliView::RenderField() {
     }
   }
 
-  gi.render_ready = 0;
+  gi.render_ready = false;
   wrefresh(main_w);
 }
 
@@ -240,6 +237,7 @@ void cliView::RenderLevel() {
 }
 
 void cliView::RenderStats() {
+  if (!tetris_stats_render_ready) return;
   for (int i = 0; i < tetris_figures_count; i++) {
     for (int j = 0; j < 4; j++) {
       for (int x = figures_stats_coords[i][j][1] * kMult;
@@ -256,6 +254,7 @@ void cliView::RenderStats() {
     }
   }
   wrefresh(figures_stats_w);
+  tetris_stats_render_ready = false;
 }
 
 void cliView::RenderStatsValues() {
@@ -273,7 +272,6 @@ void cliView::RenderStatsValues() {
       i = tmp_i;
     }
   }
-  gi.stats_render_ready = 0;
   wrefresh(figures_stats_w);
 }
 
@@ -299,6 +297,16 @@ void cliView::RenderValues() {
   gi.values_render_ready = 0;
 }
 
+void cliView::Processing() {
+  controller.GetData(gi);
+  if (gi.state == eCommonTypesState::GAMEOVER) {
+    controller.SetGame(eGame::NO_GAME);
+    gi.state = eCommonTypesState::GAMING;
+    prevState = mState;
+    mState = eState::GAMEOVER;
+  }
+}
+
 void cliView::DrawUsingState() {
   switch (mState) {
     case eState::MENU:
@@ -322,6 +330,8 @@ void cliView::DrawUsingState() {
 }
 
 void cliView::DrawMenu() {
+  if (!render_menu_ready) return;
+
   int y = 6;
   int x = 2 * kMult;
   auto dy = 1;
@@ -343,7 +353,7 @@ void cliView::DrawMenu() {
     }
     y += dy;
   }
-
+  render_menu_ready = false;
   wrefresh(main_w);
 }
 
@@ -372,10 +382,12 @@ void cliView::KeyPressedMenu(int key) {
   switch (key) {
     case KEY_UP: {
       --mCurrentMenu;
+      render_menu_ready = true;
       break;
     }
     case KEY_DOWN: {
       ++mCurrentMenu;
+      render_menu_ready = true;
       break;
     }
     // case KEY_ENTER:
@@ -400,22 +412,27 @@ void cliView::KeyPressedMenu(int key) {
 void cliView::KeyPressedTetris(int key) {
   switch (key) {
     case KEY_UP: {
+      gi.render_ready = true;
       controller.HandleKey(ConvertKey(key));
       break;
     }
     case KEY_DOWN: {
+      gi.render_ready = true;
       controller.HandleKey(ConvertKey(key));
       break;
     }
     case KEY_LEFT: {
+      gi.render_ready = true;
       controller.HandleKey(ConvertKey(key));
       break;
     }
     case KEY_RIGHT: {
+      gi.render_ready = true;
       controller.HandleKey(ConvertKey(key));
       break;
     }
     case 27: {
+      render_pause_menu_ready = true;
       controller.HandleKey(ConvertKey(key));
       prevState = mState;
       mState = eState::PAUSE;
@@ -449,14 +466,17 @@ void cliView::KeyPressedSnake(int key) {
     }
   }
 }
+
 void cliView::KeyPressedPauseMenu(int key) {
   switch (key) {
     case KEY_UP: {
       --mCurrentPauseMenu;
+      render_pause_menu_ready = true;
       break;
     }
     case KEY_DOWN: {
       ++mCurrentPauseMenu;
+      render_pause_menu_ready = true;
       break;
     }
     case KEY_ENTER: {
@@ -471,6 +491,7 @@ void cliView::KeyPressedPauseMenu(int key) {
     }
   }
 }
+
 void cliView::KeyPressedGameOverMenu(int key) {
   switch (key) {
     case KEY_UP: {
@@ -498,7 +519,6 @@ void cliView::KeyPressedGameOverMenu(int key) {
 void cliView::DrawSnakeGame() {
   // ();
   wclear(main_w);
-  controller.GetData(gi);
   for (int i = 0; i < gi.height; i++) {
     for (int j = 0; j < gi.width; j++) {
       if (gi.grid[i][j] == 1) {
@@ -522,21 +542,70 @@ void cliView::DrawSnakeGame() {
   wrefresh(main_w);
 }
 void cliView::DrawTetrisGame() {
-  wclear(main_w);
-  controller.GetData(gi);
-  RenderNextFigurePreview(gi.next_fig);
-  RenderPoints();
-  RenderHighscore();
-  RenderLevel();
+  DrawOverlay();
   RenderStats();
-  RenderStatsValues();
+  if (gi.values_render_ready) {
+    RenderPoints();
+    RenderHighscore();
+    RenderLevel();
+    gi.values_render_ready = false;
+  }
+  if (gi.stats_render_ready) {
+    RenderStatsValues();
+    RenderNextFigurePreview(gi.next_fig);
+    gi.stats_render_ready = false;
+  }
+
   RenderField();
 }
 void cliView::DrawPauseMenu() {
-  ;
-  ;
+  if (!render_pause_menu_ready) return;
+  int y = 6;
+  int x = 2 * kMult;
+  auto dy = 1;
+  int end = mvPauseMenu.size();
+
+  wclear(stdscr);
+
+  PrintRectangle(0 * kMult, 0, 11 * kMult, 21);   // stats
+  PrintRectangle(11 * kMult, 0, 22 * kMult, 21);  // main
+  PrintRectangle(22 * kMult, 0, 33 * kMult, 21);  // left
+
+  for (int i = 0; i < end; ++i) {
+    if (i == (int)mCurrentPauseMenu) {
+      wattr_on(main_w, COLOR_PAIR(9), NULL);
+      mvwaddstr(main_w, y, x, mvPauseMenu[i].second.c_str());
+      wattr_off(main_w, COLOR_PAIR(9), NULL);
+    } else {
+      mvwaddstr(main_w, y, x, mvPauseMenu[i].second.c_str());
+    }
+    y += dy;
+  }
+  render_pause_menu_ready = false;
+  wrefresh(main_w);
 }
 void cliView::DrawGameOverMenu() {
-  ;
-  ;
+  int y = 6;
+  int x = 2 * kMult;
+  auto dy = 1;
+  int end = mvGameOverMenu.size();
+
+  wclear(stdscr);
+
+  PrintRectangle(0 * kMult, 0, 11 * kMult, 21);   // stats
+  PrintRectangle(11 * kMult, 0, 22 * kMult, 21);  // main
+  PrintRectangle(22 * kMult, 0, 33 * kMult, 21);  // left
+
+  for (int i = 0; i < end; ++i) {
+    if (i == (int)mCurrentGameOverMenu) {
+      wattr_on(main_w, COLOR_PAIR(9), NULL);
+      mvwaddstr(main_w, y, x, mvGameOverMenu[i].second.c_str());
+      wattr_off(main_w, COLOR_PAIR(9), NULL);
+    } else {
+      mvwaddstr(main_w, y, x, mvGameOverMenu[i].second.c_str());
+    }
+    y += dy;
+  }
+
+  wrefresh(main_w);
 }

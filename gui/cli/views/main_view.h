@@ -16,6 +16,8 @@ class cliView {
   void RenderPoints();
   void RenderHighscore();
   void RenderLevel();
+  void Processing();
+  void InitNcurses();
   // UserAction_t parse_signal();
   enum class eState { MENU, SNAKE, TETRIS, PAUSE, GAMEOVER, EXIT };
   void RenderStats();
@@ -37,6 +39,12 @@ class cliView {
   void DrawTetrisGame();
   void DrawPauseMenu();
   void DrawGameOverMenu();
+
+  bool render_menu_ready;
+  bool render_pause_menu_ready;
+  bool render_gameover_menu_ready;
+  bool tetris_stats_render_ready;
+  bool overlay_render_ready;
 
   const static int kMult = 2;
 
